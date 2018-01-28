@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package ipfspracticesimple;
+package Testing.ipfspracticesimple;
 
 import io.ipfs.api.IPFS;
 import io.ipfs.api.MerkleNode;
@@ -46,11 +46,11 @@ public class IPFSPracticeSimple {
 
     //To add a file use -> will return a list of merkelnodes
     try {
-      new File("./src/ipfspracticesimple/Hello.txt").createNewFile();
+      new File("./src/Testing/ipfspracticesimple/Hello.txt").createNewFile();
     } catch (IOException ex) {
       Logger.getLogger(IPFSPracticeSimple.class.getName()).log(Level.SEVERE, null, ex);
     }
-    NamedStreamable.FileWrapper file = new NamedStreamable.FileWrapper(new File("./src/ipfspracticesimple/Hello.txt"));
+    NamedStreamable.FileWrapper file = new NamedStreamable.FileWrapper(new File("./src/Testing/ipfspracticesimple/Hello.txt"));
     try {
       MerkleNode addResult = ipfs.add(file).get(0);
       System.out.println(addResult.toJSONString());
