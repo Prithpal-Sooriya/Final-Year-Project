@@ -50,7 +50,7 @@ public class IPFSPracticeSimple {
     } catch (IOException ex) {
       Logger.getLogger(IPFSPracticeSimple.class.getName()).log(Level.SEVERE, null, ex);
     }
-    NamedStreamable.FileWrapper file = new NamedStreamable.FileWrapper(new File("./src/ipfspracticesimple/Hello.txt")); //just an issue with trying to find this file!!
+    NamedStreamable.FileWrapper file = new NamedStreamable.FileWrapper(new File("./src/ipfspracticesimple/Hello.txt"));
     try {
       MerkleNode addResult = ipfs.add(file).get(0);
       System.out.println(addResult.toJSONString());
@@ -64,6 +64,7 @@ public class IPFSPracticeSimple {
     try {
       MerkleNode addResult = ipfs.add(file2).get(0);
       System.out.println(addResult.toJSONString());
+      System.out.println(addResult.hash);
     } catch (IOException ex) {
       Logger.getLogger(IPFSPracticeSimple.class.getName()).log(Level.SEVERE, null, ex);
     }
