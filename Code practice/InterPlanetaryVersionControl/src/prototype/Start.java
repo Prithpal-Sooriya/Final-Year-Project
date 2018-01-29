@@ -8,6 +8,7 @@ package prototype;
 import java.io.File;
 import java.util.Scanner;
 import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 /**
  *
@@ -22,7 +23,7 @@ public class Start {
 
     //scanner for input
     Scanner scan = new Scanner(System.in);
-    
+
     //IPVC to access version control commands
     IPVC ipvc = new IPVC();
 
@@ -30,6 +31,8 @@ public class Start {
     System.out.println("===============================");
     System.out.println("type '--help' for commands");
 
+    JFileChooser chooser = new JFileChooser();
+    
     while (true) {
       String input = scan.next();
       switch (input) {
@@ -51,23 +54,37 @@ public class Start {
           break;
 
         case "add":
+          System.out.println("add command");
           //search for file to add.
-          JFileChooser chooser = new JFileChooser();
-//          chooser.setCurrentDirectory(new File("."));
+          chooser = new JFileChooser();
+          chooser.setCurrentDirectory(new File("."));
           chooser.setDialogTitle("Select file to add");
+          chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+//          System.out.println("opening chooser");
           int returnVal = chooser.showOpenDialog(null);
+//          System.out.println("opened chooser");
           if (returnVal == JFileChooser.APPROVE_OPTION) {
             File file = chooser.getSelectedFile();
-            
+
             ipvc.addFile(file);
-          }
-          else {
+          } else {
             System.out.println("Add cancelled");
           }
           break;
 
         case "versions":
           //search for versions file
+          System.out.println("version command");
+          chooser = new JFileChooser();
+          chooser.setCurrentDirectory(new File("."));
+          chooser.setDialogTitle("Select file to add");
+          FileNameExtensionFilter filter = new FileNameExtensionFilter(".ipvc files only", "ipvc");
+          chooser.addChoosableFileFilter(filter);
+          returnVal = chooser.showOpenDialog(null);
+          if (returnVal == JFileChooser.APPROVE_OPTION) {
+            File file = chooser.getSelectedFile();
+            ipvc.versions(file);
+          }
           break;
 
         default:

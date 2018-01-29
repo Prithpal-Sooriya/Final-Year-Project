@@ -9,6 +9,7 @@ import io.ipfs.api.IPFS;
 import io.ipfs.api.MerkleNode;
 import io.ipfs.api.NamedStreamable;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -63,7 +64,7 @@ public class IPVC {
     if (!versionFile.exists()) {
       try {
         versionFile.createNewFile();
-        createJSONFileInformation(file);
+        createJSONFileInformation(versionFile);
       } catch (IOException ex) {
         System.err.println("Error in creating file");
         ex.printStackTrace();
@@ -79,7 +80,7 @@ public class IPVC {
       
       //read in the json info
       //TIDY UP THIS
-      FileReader reader = new FileReader(file);
+      FileReader reader = new FileReader(versionFile);
       JSONParser parser = new JSONParser();
       try {
         JSONObject update = (JSONObject) parser.parse(reader);
@@ -88,18 +89,59 @@ public class IPVC {
         versions.add(versionJSON);
         update.put("versions", versions); //update versions array
         
-        FileWriter fw = new FileWriter(file);
+        FileWriter fw = new FileWriter(versionFile);
         fw.write(update.toJSONString()); //write the new json string --> computationally expensive... must be easier way to change file info...
         fw.flush();
         fw.close();
       } catch (ParseException ex) {
+        System.err.println("Error when added json");
         Logger.getLogger(IPVC.class.getName()).log(Level.SEVERE, null, ex);
       }
+      
+      //notify the user
+      System.out.println("File Added!");
+      System.out.println("Access from:");
+      System.out.println("IPFS/IPFS gateway");
+      System.out.println("localhost:8080/ipfs/"+node.hash.toString());
+      System.out.println("HTTP/IPFS gateway");
+      System.out.println("gateway.ipfs.io/ipfs/"+node.hash.toString());
+      System.out.println("ipfs.io/ipfs"+node.hash.toString());
+      
       
     } catch (IOException ex) {
       System.err.println("Error in ipfs add file");
       ex.printStackTrace();
     }
+  }
+  
+  public void versions(File file) {
+    try {
+      //file is in json, so construct hashes from json
+      FileReader reader = new FileReader(file);
+      JSONParser parser = new JSONParser();
+      try {
+        JSONObject update = (JSONObject) parser.parse(reader);
+        JSONArray versions = (JSONArray) update.get("versions");
+        
+        for (Object version : versions) {
+          JSONObject v = (JSONObject) version;
+          System.out.println(v.get("Author") + ", " + v.get("CommitMessage") + ", " + v.get("Date"));
+          List<MerkleNode> nodes = (List<MerkleNode>) v.get("nodes");
+          for (MerkleNode node : nodes) {
+            System.out.println(node.toJSONString());
+          }
+          System.out.println("===================");
+        }
+        
+      } catch (ParseException|IOException ex) {
+        System.err.println("Error when added json");
+        Logger.getLogger(IPVC.class.getName()).log(Level.SEVERE, null, ex);
+      }
+    } catch (FileNotFoundException ex) {
+      System.out.println("Error when reading json file");
+      Logger.getLogger(IPVC.class.getName()).log(Level.SEVERE, null, ex);
+    }
+    
   }
 
   private void createJSONFileInformation(File file) throws IOException {
@@ -108,8 +150,8 @@ public class IPVC {
     JSONArray versions = new JSONArray();
     header.put("versions", versions);
     
-    FileWriter fw = new FileWriter(file, true);
-    fw.append(header.toJSONString());
+    FileWriter fw = new FileWriter(file);
+    fw.write(header.toJSONString());
     fw.flush();
     fw.close();
   }
