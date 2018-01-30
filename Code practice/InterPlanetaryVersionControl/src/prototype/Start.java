@@ -60,9 +60,7 @@ public class Start {
           chooser.setCurrentDirectory(new File("."));
           chooser.setDialogTitle("Select file to add");
           chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-//          System.out.println("opening chooser");
           int returnVal = chooser.showOpenDialog(null);
-//          System.out.println("opened chooser");
           if (returnVal == JFileChooser.APPROVE_OPTION) {
             File file = chooser.getSelectedFile();
 
@@ -79,7 +77,8 @@ public class Start {
           chooser.setCurrentDirectory(new File("."));
           chooser.setDialogTitle("Select file to add");
           FileNameExtensionFilter filter = new FileNameExtensionFilter(".ipvc files only", "ipvc");
-          chooser.addChoosableFileFilter(filter);
+          chooser.setFileFilter(filter); //only accepts file with this filter
+          //chooser.addChoosableFileFilter(filter); //adds a dropdown to select file
           returnVal = chooser.showOpenDialog(null);
           if (returnVal == JFileChooser.APPROVE_OPTION) {
             File file = chooser.getSelectedFile();

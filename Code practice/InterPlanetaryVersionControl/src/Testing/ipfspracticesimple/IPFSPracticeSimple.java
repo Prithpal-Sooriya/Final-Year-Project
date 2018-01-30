@@ -10,10 +10,12 @@ import io.ipfs.api.MerkleNode;
 import io.ipfs.api.NamedStreamable;
 import io.ipfs.multihash.Multihash;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.json.simple.JSONObject;
 
 /**
  *
@@ -53,7 +55,19 @@ public class IPFSPracticeSimple {
     NamedStreamable.FileWrapper file = new NamedStreamable.FileWrapper(new File("./src/Testing/ipfspracticesimple/Hello.txt"));
     try {
       MerkleNode addResult = ipfs.add(file).get(0);
-      System.out.println(addResult.toJSONString());
+      
+      //here to test writing to json file and reading to json file
+      File f = new File("./src/Testing/ipfspracticesimple/nodes.json");
+      FileWriter fw = new FileWriter(f);
+      JSONObject obj = new JSONObject();
+      obj.put("node", addResult.toJSON());
+      //obj.put("node2", addResult.toJSONString());
+      fw.append(obj.toJSONString());
+      fw.flush();
+      fw.close();
+      
+      
+      
     } catch (IOException ex) {
       Logger.getLogger(IPFSPracticeSimple.class.getName()).log(Level.SEVERE, null, ex);
     }
