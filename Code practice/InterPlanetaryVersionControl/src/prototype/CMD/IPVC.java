@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package prototype;
+package prototype.CMD;
 
 import io.ipfs.api.IPFS;
 import io.ipfs.api.MerkleNode;

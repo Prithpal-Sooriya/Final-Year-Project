@@ -21,6 +21,7 @@ Issues
 Other ideas
 - store versionedFiles as JSON!!
   - it will make my life a lot easier!!
+  - ISSUE: merklenode.toJSON is not fully json compatible (thus had to use toJSONString())
 
 
 --------------

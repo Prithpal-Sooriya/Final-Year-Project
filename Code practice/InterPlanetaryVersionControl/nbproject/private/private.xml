@@ -3,9 +3,10 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/Prithpal%20Sooriya/Desktop/Final-Year-Project/Code%20practice/InterPlanetaryVersionControl/src/prototype/Start.java</file>
-            <file>file:/C:/Users/Prithpal%20Sooriya/Desktop/Final-Year-Project/Code%20practice/InterPlanetaryVersionControl/src/Testing/ipfspracticesimple/IPFSPracticeSimple.java</file>
-            <file>file:/C:/Users/Prithpal%20Sooriya/Desktop/Final-Year-Project/Code%20practice/InterPlanetaryVersionControl/src/prototype/IPVC.java</file>
+            <file>file:/C:/Users/Prithpal%20Sooriya/Desktop/Final-Year-Project/Code%20practice/InterPlanetaryVersionControl/src/prototype/GUI/FileDropHandler.java</file>
+            <file>file:/C:/Users/Prithpal%20Sooriya/Desktop/Final-Year-Project/Code%20practice/InterPlanetaryVersionControl/src/prototype/GUI/Controller.java</file>
+            <file>file:/C:/Users/Prithpal%20Sooriya/Desktop/Final-Year-Project/Code%20practice/InterPlanetaryVersionControl/src/prototype/GUI/IPVC.java</file>
+            <file>file:/C:/Users/Prithpal%20Sooriya/Desktop/Final-Year-Project/Code%20practice/InterPlanetaryVersionControl/src/prototype/GUI/UIFrame.java</file>
         </group>
     </open-files>
 </project-private>
