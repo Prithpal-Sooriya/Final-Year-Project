@@ -17,8 +17,6 @@ This is my final year project that I have developed at the University of the Wes
 
 ## To be achieved (descending order of priority)
 - [ ] ADD TESTING!
-- [ ] Order commits correctly
-  - git flow (dev branch for all code, & pull requests to master branch)
 
 - command line
   - [ ] Adding a directory to IPFS
