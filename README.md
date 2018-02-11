@@ -57,6 +57,15 @@ This is my final year project that I have developed at the University of the Wes
 
 ----------
 
+## structure of code
+Needs major refactoring
+- directory for command line/console commands
+- directory for GUI.
+  - maybe contain a logic directory (which also contains command line version?)
+
+
+----------
+
 # Information about project
 
 ## Inspiration for application name
