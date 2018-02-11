@@ -16,6 +16,8 @@ This is my final year project that I have developed at the University of the Wes
   - accessing file through IPFS daemon. (click on QR code).
 
 ## To be achieved (descending order of priority)
+- [ ] ADD TESTING!!
+
 - command line
   - [ ] Adding a directory to IPFS
     - I think I have an issue with windows file system compared to linux/mac file system.
