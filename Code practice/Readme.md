@@ -16,7 +16,7 @@ This is my final year project that I have developed at the University of the Wes
   - accessing file through IPFS daemon. (click on QR code).
 
 ## To be achieved (descending order of priority)
-- [ ] ADD TESTING!!
+- [ ] ADD TESTING!
 
 - command line
   - [ ] Adding a directory to IPFS
