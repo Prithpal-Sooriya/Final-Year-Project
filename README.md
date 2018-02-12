@@ -15,6 +15,18 @@ This is my final year project that I have developed at the University of the Wes
   - qr code for accessing file (HTTP/IPFS gateway) --> gimmick for project in progress event, so passer-by's can try out demo.
   - accessing file through IPFS daemon. (click on QR code).
 
+## currently working on
+- [ ] adding folders to IPFS
+  - about to flip a table!! I can't seem to get it to work with the IPFS-Java-API
+    - test that I have not done yet -> retrieve hashed folder and see if contents are readable.
+  - if IPFS-Java-API fails...
+    - can use Java to access IPFS terminal to execute commands
+    - can use the HTTP-API to execute commands
+      - This is fully build and response in JSON!
+        - **could be used for the HTTP/IPFS server implementation!!**
+      - [this is where I gained some insight about this](https://ethereum.stackexchange.com/questions/4531/how-to-add-a-file-to-ipfs-using-the-api)
+      - [this is the documentation for it](https://ipfs.io/docs/commands/)
+        - I SAW THIS BEFORE AND THOUGHT IS WAS USELESS!!
 ## To be achieved (descending order of priority)
 - [ ] ADD TESTING!
 - [ ] Order commits correctly

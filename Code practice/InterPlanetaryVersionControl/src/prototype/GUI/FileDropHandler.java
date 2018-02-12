@@ -57,6 +57,7 @@ public class FileDropHandler extends TransferHandler {
     //do stuff with file!
     for (File file : files) {
       //works!!! --> need to either handle files back to gui or to a controller
+//      System.out.println(file.getAbsolutePath());
       String author = JOptionPane.showInputDialog("Enter Author");
       String commitMessage = JOptionPane.showInputDialog("Enter commitMessage");
       Controller.addFileToIPFS(file, commitMessage, author);

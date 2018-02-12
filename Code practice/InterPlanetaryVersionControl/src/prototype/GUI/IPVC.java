@@ -13,6 +13,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
@@ -121,6 +122,74 @@ public class IPVC {
     return null;
   }
 
+  public String addDir(File file, String commitMessage, String author) {
+    /* Support adding directories */
+//    String parentDirectory = file.getParent() + "/"; //parent directory
+    String folderDirectory = file.getAbsolutePath();
+    
+    //maybe add checks on folder directory (e.g. if it is a valid folder name...)
+    //
+    File versionFile = new File(folderDirectory + "/" + ".ipvc"); //should create .ipvc file inside folder
+    if (!versionFile.exists()) {
+      try {
+        versionFile.createNewFile();
+        createJSONFileInformation(versionFile);
+      } catch (IOException ex) {
+        System.err.println("Error in creating file");
+        ex.printStackTrace();
+      }
+    }
+    
+    
+    //add folder to ipfs and update versions
+    try {
+      NamedStreamable.DirWrapper dir = new NamedStreamable.DirWrapper(file.getAbsolutePath(), Arrays.<NamedStreamable>asList());
+      List<MerkleNode> nodes = ipfs.add(dir);
+
+      JSONObject versionJSON = createJSONVersion(nodes, commitMessage, author);
+      System.out.println(nodes.size());
+      MerkleNode node = nodes.get(nodes.size() - 1); //last one is root node!
+
+      //read in the json info
+      FileReader reader = new FileReader(versionFile);
+      JSONParser parser = new JSONParser();
+      try {
+
+        JSONObject update = (JSONObject) parser.parse(reader);
+        update.put(JSONOBJECT_HEAD_KEY, versionJSON); //update head --> will contain whole version, not just merkle root node
+        JSONArray versions = (JSONArray) update.get(JSONOBJECT_VERSIONS_KEY);
+        versions.add(versionJSON);
+        update.put(JSONOBJECT_VERSIONS_KEY, versions); //update versions array
+
+        FileWriter fw = new FileWriter(versionFile);
+        fw.write(update.toJSONString()); //write the new json string --> computationally expensive... must be easier way to change file info...
+        fw.flush();
+        fw.close();
+      } catch (ParseException ex) {
+        System.err.println("Error when added json");
+        ex.printStackTrace();
+      }
+
+      //notify the user
+      System.out.println("File Added!");
+      System.out.println("Access from:");
+      System.out.println("IPFS/IPFS gateway:");
+      System.out.println("localhost:8080/ipfs/" + node.hash.toString());
+      System.out.println("HTTP/IPFS gateway:");
+      System.out.println("gateway.ipfs.io/ipfs/" + node.hash.toString());
+      System.out.println("ipfs.io/ipfs/" + node.hash.toString());
+      
+      return node.hash.toString();
+      
+    } catch (IOException ex) {
+      System.err.println("Error in ipfs add file");
+      ex.printStackTrace();
+    }
+    
+    
+    return null;
+  }
+  
   public void versions(File file) {
     try {
       //file is in json, so construct hashes from json

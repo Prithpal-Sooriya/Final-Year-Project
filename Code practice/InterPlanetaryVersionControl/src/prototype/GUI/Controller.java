@@ -24,7 +24,8 @@ public class Controller {
   //this function will take in the file from handler, and return information to gui
   public static void addFileToIPFS(File file, String commitMessage, String author) {
     
-    String hash = ipvc.addFile(file, commitMessage, author);
+//    String hash = ipvc.addFile(file, commitMessage, author);
+    String hash = ipvc.addDir(file, commitMessage, author);
     frame.changeQRCode(hash);
     
   }
