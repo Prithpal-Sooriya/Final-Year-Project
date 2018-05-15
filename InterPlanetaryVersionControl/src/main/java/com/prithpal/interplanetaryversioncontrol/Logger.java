@@ -5,16 +5,14 @@
  */
 package com.prithpal.interplanetaryversioncontrol;
 
-import org.json.simple.JSONObject;
-
 /**
- *
+ * Logger class that will log contents (success/warning/error) onto a log file
  * @author Prithpal
  */
-public class HelloWorld {
- 
-    public static void main(String[] args) {
-        
-    }
+public class Logger {
+  
+  public static void warning(String info) {
     
+  }
+  
 }

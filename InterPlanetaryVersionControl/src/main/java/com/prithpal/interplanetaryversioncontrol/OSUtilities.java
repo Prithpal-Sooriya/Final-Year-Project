@@ -16,6 +16,16 @@ import java.util.Locale;
  */
 public class OSUtilities {
 
+  /**
+   * Constants and variables
+   * APPLICATION_NAME = name of the application
+   * @TODO the APPLICATION_NAME = "InterPlanetaryFileSystem" is too long, maybe a shorter name?
+   * 
+   * OS_TYPE = the types of OS supported
+   * @TODO this class needs to implement some of the OS types to support.
+   */
+  private static final String APPLICATION_NAME = "InterPlanetaryVersionControl";
+  
   public enum OS_TYPE {
     LINUX,
     WINDOWS,
@@ -24,12 +34,22 @@ public class OSUtilities {
     OTHER_OS
   };
 
+  
+  /**
+   * isUnix(OS_TYPE os)
+   * @param os the type of operating system
+   * @return boolean if the OS is UNIX
+   */
   public static boolean isUnix(OS_TYPE os) {
     return os.LINUX == OS_TYPE.LINUX
             || os.MAC_OS == OS_TYPE.MAC_OS
             || os == OS_TYPE.OTHER_UNIX;
   }
 
+  /**
+   * getOSType()
+   * @return OS_TYPE the type of OS this program is running on.
+   */
   public static OS_TYPE getOSType() {
     String name = System.getProperty("os.name").toLowerCase(Locale.ROOT);
     if (name.contains("linux")) {
@@ -49,7 +69,7 @@ public class OSUtilities {
 
   public static String getApplicationName() {
     //TODO: change this name to something shorter!
-    String name = "InterPlanetaryVersionControl";
+    String name = APPLICATION_NAME;
     OS_TYPE os = getOSType();
     if (os == OS_TYPE.WINDOWS) {
       name += ".exe";
@@ -59,7 +79,7 @@ public class OSUtilities {
 
   public static String getApplicationToolName() {
     //TODO: change this name to something shorter!
-    String name = "InterPlanetaryVersionControl-cli";
+    String name = APPLICATION_NAME+"-cli";
     OS_TYPE os = getOSType();
     if (os == OS_TYPE.WINDOWS) {
       name += ".exe";
@@ -70,5 +90,65 @@ public class OSUtilities {
   public static String getProgramDirectory() throws IOException {
     //TODO: search based on a file (to find the dir?), maybe 
     return null;
+  }
+  
+  public static File getUserHomeDirectory() throws IOException{
+    return new File(System.getProperty("user.home"));
+  }
+  
+  public static String getSettingsDirectory() throws IOException {
+    File userHome = getUserHomeDirectory();
+    File dir;
+    OS_TYPE os = getOSType();
+    
+    if (os == OS_TYPE.WINDOWS) {
+      dir = new File(System.getenv("LOCALAPPDATA") + "\\" + APPLICATION_NAME);
+    }
+    else if (os == OS_TYPE.MAC_OS) {
+      dir = new File(userHome, "Library/Application Support/"+APPLICATION_NAME);
+    }
+    else {
+      dir = new File(userHome.getCanonicalPath(), File.separator + "." + APPLICATION_NAME);
+    }
+    
+    if(!dir.exists()) {
+      if(!dir.mkdirs()) {
+        Logger.warning("could not create application settings directory: " + dir.getCanonicalPath());
+      }
+    }
+    return dir.getCanonicalPath();
+  }
+  
+  public static String getSystemInfo() throws IOException, InterruptedException {
+    //must find a better way to gather system information
+    return System.getProperty("os.name") + System.getProperty("os.version");
+  }
+  
+  public static File getIPFSCommand(String command) throws IOException {
+    OS_TYPE os = getOSType();
+    
+    //TODO: find a cleaner way of accessing the IPFS command
+    if(os == OS_TYPE.WINDOWS) {
+      String progFilesString = System.getenv("PROGRAMFILES");
+      if((progFilesString != null) && (!progFilesString.isEmpty())) {
+        File progFilesFile = new File(progFilesString);
+        if(isFolder(progFilesFile)) {
+          File IPFS = new File(progFilesFile,"IPFS");
+          if(isFolder(IPFS)) {
+            File commandFile = new File(IPFS, command);
+            if(commandFile.exists() && commandFile.isFile()) {
+              return commandFile;
+            }
+          }
+        }
+      }
+    }
+    
+    //TODO: find ipfs location on other operating systems
+    
+  }
+  
+  private static boolean isFolder(File f) {
+    return f.exists() && f.isDirectory();
   }
 }
