@@ -145,7 +145,8 @@ public class OSUtilities {
     }
     
     //TODO: find ipfs location on other operating systems
-    
+    //...
+    return null;
   }
   
   private static boolean isFolder(File f) {
