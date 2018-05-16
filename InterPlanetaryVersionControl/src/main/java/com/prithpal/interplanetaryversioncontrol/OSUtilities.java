@@ -125,6 +125,7 @@ public class OSUtilities {
   }
   
   public static File getIPFSCommand(String command) throws IOException {
+    //TODO support for multiple operating systems
     OS_TYPE os = getOSType();
     
     //TODO: find a cleaner way of accessing the IPFS command
@@ -151,5 +152,14 @@ public class OSUtilities {
   
   private static boolean isFolder(File f) {
     return f.exists() && f.isDirectory();
+  }
+  
+  public static String wrapString(String param) {
+    //helpful notes found on various github sources --> windows can be difficult to deal with on command line
+    OS_TYPE os = OSUtilities.getOSType();
+    if(os == OS_TYPE.WINDOWS) {
+      param = '"' + param.replace("\"", "\\\"") + '"';
+    }
+    return param;
   }
 }
