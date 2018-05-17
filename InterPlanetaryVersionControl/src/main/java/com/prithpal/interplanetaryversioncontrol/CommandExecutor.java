@@ -61,7 +61,7 @@ public class CommandExecutor {
       public void run() {
         try {
           int c;
-          while ((c = in.read()) != -1) {
+          while ((c = err.read()) != -1) {
             result.append((char) c);
           }
         } catch (IOException ex) {

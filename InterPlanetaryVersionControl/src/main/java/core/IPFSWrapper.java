@@ -3,9 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.prithpal.interplanetaryversioncontrol;
+package core;
 
+import com.prithpal.interplanetaryversioncontrol.CommandExecutor;
+import com.prithpal.interplanetaryversioncontrol.Logger;
+import com.prithpal.interplanetaryversioncontrol.OSUtilities;
 import com.prithpal.interplanetaryversioncontrol.OSUtilities.OS_TYPE;
+import com.prithpal.interplanetaryversioncontrol.UserInterface.MainUI;
 import java.awt.Cursor;
 import java.awt.Desktop;
 import java.awt.Toolkit;
@@ -15,6 +19,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -29,6 +36,9 @@ public class IPFSWrapper {
   private Process IPFSProcess;
   private final Pattern IPFS_URL_PATTERN = Pattern.compile(
           "https?://[a-zA-Z0-9\\.\\-]+(:[0-9]{2,5})?/ipfs/[a-zA-Z0-9]{15,100}"
+  );
+  private final Pattern IPFS_HASH_PATTERN = Pattern.compile(
+          "[a-zA-Z0-9]{15,100}"
   );
 
   //constructor
@@ -54,9 +64,122 @@ public class IPFSWrapper {
     }
   }
 
+  private String getHashFromIPNSAdd(String result) {
+    Matcher m = Pattern.compile("(Published to ([a-zA-Z0-9]{15,100}))").matcher(result);
+    while(m.find()) {
+      return m.group(2);
+    }
+    return null; //no match found
+  }
+  
+  public String addToIPNS(String hash) {
+    if (hash == null) {
+      return null;
+    }
+
+    Cursor oldCursor = this.parentFrame.getCursor();
+    try {
+      String args[] = {this.getIPFSExecutable().getCanonicalPath(), "name", "publish", hash};
+      CommandExecutor exec = new CommandExecutor(args);
+      String response = exec.execute().trim();
+      Matcher m = Pattern.compile("(Published to ([a-zA-Z0-9]{15,100}))").matcher(response);
+      String ipnsHash = this.getHashFromIPNSAdd(response);
+      Logger.info("File added, IPNS hash: " + ipnsHash);
+      this.parentFrame.setCursor(oldCursor);
+      Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+      clipboard.setContents(new StringSelection("http://localhost:8080/ipns/" + ipnsHash), null);
+      JOptionPane.showMessageDialog(
+              this.parentFrame,
+              "The hash " + ipnsHash + " has been added to the IPNS DHT.\n"
+              + "It may be reached by other users (who also have IPFS server running)\n"
+              + "via the link: http://localhost:8080/ipns/" + ipnsHash + "\n\n"
+              + "you can copy the link from this text box and has already been copied to your clipboard",
+              "File added success!",
+              JOptionPane.INFORMATION_MESSAGE
+      );
+      return "[" + ipnsHash + "]("
+              + "http://localhost:8080/ipns/" + ipnsHash + ")";
+
+    } catch (Exception ex) {
+      Logger.error("Unexpected Error: ", ex);
+      JOptionPane.showMessageDialog(
+              this.parentFrame,
+              "Unexpected Error occured when adding file to IPFS network\n"
+              + "" + ex.getMessage().replace(",", ",\n"),
+              "Error when adding file",
+              JOptionPane.ERROR_MESSAGE
+      );
+      return null;
+    } finally {
+      this.parentFrame.setCursor(oldCursor);
+    }
+  }
+
+  //return in format [hash](link)
+  //supports adding recursive and hidden (.) files (e.g. ".ipvc")
+  public String addRecursiveFilesToIPFS(File file, boolean addHidden) {
+    if (!file.exists()) {
+      return null;
+    }
+
+    Cursor oldCursor = this.parentFrame.getCursor();
+    try {
+      this.parentFrame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+      Logger.info("Sharing file {0}", file.getCanonicalPath());
+
+      if (!this.ensureIPFSIsRunning()) {
+        return null;
+      }
+
+      String ipfs = this.getIPFSExecutable().getCanonicalPath();
+      String content = OSUtilities.wrapString(file.getCanonicalPath());
+      ArrayList<String> args = new ArrayList<>();
+      args.add(ipfs);
+      args.add("add");
+      args.add("-r");
+      args.add("-Q");
+      if (addHidden) {
+        args.add("-H");
+      }
+      args.add(content);
+
+      CommandExecutor exec = new CommandExecutor(
+              args.stream().toArray(String[]::new)
+      );
+      String response = exec.execute().trim();
+      Logger.info("File added, IPFS hash: " + response);
+      this.parentFrame.setCursor(oldCursor);
+      Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+      clipboard.setContents(new StringSelection("http://localhost:8080/ipfs/" + response), null);
+      JOptionPane.showMessageDialog(
+              this.parentFrame,
+              "The folder " + file.getName() + " has been added to the IPFS network.\n"
+              + "It may be reached by other users (who also have IPFS server running)\n"
+              + "via the link: http://localhost:8080/ipfs/" + response + "\n\n"
+              + "you can copy the link from this text box and has already been copied to your clipboard",
+              "File added success!",
+              JOptionPane.INFORMATION_MESSAGE
+      );
+      return "[" + response + "]("
+              + "http://localhost:8080/ipfs/" + response + ")";
+    } catch (Exception ex) {
+      Logger.error("Unexpected Error: ", ex);
+      JOptionPane.showMessageDialog(
+              this.parentFrame,
+              "Unexpected Error occured when adding file to IPFS network\n"
+              + "" + ex.getMessage().replace(",", ",\n"),
+              "Error when adding file",
+              JOptionPane.ERROR_MESSAGE
+      );
+      return null;
+    } finally {
+      this.parentFrame.setCursor(oldCursor);
+    }
+  }
+
   //return will be in format [hash](link)
   //if error then return null
-  public String addFileViaIPFS(File file) throws IOException, InterruptedException {
+  public String addFileViaIPFS(File file) {
     if (!file.exists()) {
       return null;
     }
@@ -92,10 +215,9 @@ public class IPFSWrapper {
               "File added success!",
               JOptionPane.INFORMATION_MESSAGE
       );
-      return "[" + file.getName() + "]("
+      return "[" + response + "]("
               + "http://localhost:8080/ipfs/" + response + ")";
     } catch (Exception ex) {
-      //continue here
       Logger.error("Unexpected Error: ", ex);
       JOptionPane.showMessageDialog(
               this.parentFrame,
@@ -201,7 +323,7 @@ public class IPFSWrapper {
     //find IPFS and execute
     //TODO: add validation on IPFS path.
     CommandExecutor starter = new CommandExecutor(new String[]{
-      this.getIPFSExecutable().getCanonicalPath(), "daemon"
+      this.getIPFSExecutable().getCanonicalPath(), "daemon", "--enable-pubsub-experiment", "--enable-namesys-pubsub"
     });
 
     this.IPFSProcess = starter.startChildProcess();
@@ -210,7 +332,7 @@ public class IPFSWrapper {
     //TODO: there must be a better way to ensure daemon is started (asych read when terminal shows "daemon is ready"
     Cursor prevCursor = this.parentFrame.getCursor();
     this.parentFrame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-    Thread.sleep(5000);
+    Thread.sleep(3000);
     this.parentFrame.setCursor(prevCursor);
     Runtime.getRuntime().addShutdownHook(new Thread() {
       @Override
@@ -243,9 +365,17 @@ public class IPFSWrapper {
     return IPFSProcess != null;
   }
 
-  public static void main(String[] args) throws IOException {
-    IPFSWrapper wrapper = new IPFSWrapper(new JFrame());
-    System.out.println(wrapper.getIPFSExecutable().getCanonicalPath());
+  public String getHashFromIPFSAdd(String result) {
+    //result is in format [hash](link)
+    Matcher m = Pattern.compile("\\[" + IPFS_HASH_PATTERN + "\\]").matcher(result);
+    while (m.find()) {
+      return m.group(0).replace("[", "").replace("]", "");
+    }
+    return null; //could not be found
   }
 
+//  public static void main(String[] args) throws IOException, InterruptedException {
+//    IPFSWrapper ipfs = new IPFSWrapper();
+//    System.out.println(ipfs.getHashFromAdd("[QmQP98cKtfXNzru6i9wcvVtVEo1qEwFbJGLG73EQAPkgiK](https://localhost:8080/ipfs/QmQP98cKtfXNzru6i9wcvVtVEo1qEwFbJGLG73EQAPkgiK)"));
+//  }
 }
