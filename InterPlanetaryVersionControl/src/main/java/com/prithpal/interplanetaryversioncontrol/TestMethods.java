@@ -5,6 +5,8 @@
  */
 package com.prithpal.interplanetaryversioncontrol;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 import org.json.simple.JSONObject;
 
@@ -23,8 +25,11 @@ public class TestMethods {
     }
   }
 
-  public static void main(String[] args) {
-//    testEnvironmentVariables();
+  public static void main(String[] args) throws IOException {
+//    System.out.println(System.getProperty("java.class.path"));
+//    System.out.println(System.getenv("PATH"));
+//    System.out.println(System.getProperty("user.dir"));
+    System.out.println(new File(".").getCanonicalPath());
   }
 
 }

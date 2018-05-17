@@ -77,7 +77,7 @@ public class OSUtilities {
     return name;
   }
 
-  public static String getApplicationToolName() {
+  public static String getApplicationCLIName() {
     //TODO: change this name to something shorter!
     String name = APPLICATION_NAME+"-cli";
     OS_TYPE os = getOSType();
@@ -88,8 +88,19 @@ public class OSUtilities {
   }
 
   public static String getProgramDirectory() throws IOException {
-    //TODO: search based on a file (to find the dir?), maybe 
-    return null;
+    //TODO: search based on a file (to find the dir?), maybe
+    
+    //current solution is to use the userDirectory of where this application is stored
+    //e.g. C:\Users\<username>\Desktop\Final-Year-Project\InterPlanetaryVersionControl --> this is where the project is for me...
+    String userDirString = System.getProperty("user.dir");
+    if(userDirString != null) {
+      File userDir = new File(userDirString);
+      if(userDir.exists() && userDir.isDirectory()) {
+        return userDir.getCanonicalPath();
+      }
+    }
+    
+    return new File(".").getCanonicalPath(); //essentially the same as user.dir
   }
   
   public static File getUserHomeDirectory() throws IOException{

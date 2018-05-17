@@ -55,6 +55,7 @@ public class IPFSWrapper {
   }
 
   //return will be in format [hash](link)
+  //if error then return null
   public String addFileViaIPFS(File file) throws IOException, InterruptedException {
     if (!file.exists()) {
       return null;
@@ -95,6 +96,17 @@ public class IPFSWrapper {
               + "http://localhost:8080/ipfs/" + response + ")";
     } catch (Exception ex) {
       //continue here
+      Logger.error("Unexpected Error: ", ex);
+      JOptionPane.showMessageDialog(
+              this.parentFrame,
+              "Unexpected Error occured when adding file to IPFS network\n"
+              + "" + ex.getMessage().replace(",", ",\n"),
+              "Error when adding file",
+              JOptionPane.ERROR_MESSAGE
+      );
+      return null;
+    } finally {
+      this.parentFrame.setCursor(oldCursor);
     }
   }
 
