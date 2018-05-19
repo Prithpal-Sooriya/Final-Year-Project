@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Version Selector</title>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <!-- <script type="text/javascript" src=".commits.json"></script> -->
+    <script src="displayCommits.js"></script>
+  </head>
+  <body>
+
+    <div id="div_branches" style="width:40%">
+      <h3>Branches</h3>
+      <select id="select_branches" onChange="changeBranch">
+        <option hidden selected disabled>Select Branches</option>
+      </select>
+    </div>
+    <hr>
+    <div id="div_commits" style="width:40%">
+      <!-- populated commits -->
+      <h4><strong>2017-03-05</strong></h4>
+      <p>Initial Commit - <i>Prithpal Sooriya</i></p>
+    </div>
+  </body>
+</html>

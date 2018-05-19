@@ -53,18 +53,17 @@ public class TestMethods {
       String author = scan.nextLine();
       System.out.println("Enter Commit message");
       String commit = scan.nextLine();
-      String hash = ipvc.add(file, commit, author, VersionJSONCreator.JSONOBJECT_BRANCH_MASTER_KEY);
+      String hash = ipvc.addIPFS(file, commit, author, VersionJSONCreator.JSONOBJECT_BRANCH_MASTER_KEY); //TODO: other branches means need to get branches, not master
       
       if (hash != null) {
         System.out.println("Add was successful!");
-        System.out.println("IPFS Hash:");
-        System.out.println(hash);
+        System.out.println("IPFS Hash:" + hash);
 
+        //TODO fix ipns add (want to add ipvc!!! not the actual content!!)
         System.out.println("Updating IPNS");
-        String ipnsResult = ipfs.addToIPNS(hash);
-//        String ipnsHash = ipvc.addIPNS(file);
-        System.out.println("IPNS Hash:");
-        System.out.println(ipnsResult);
+        String ipvcHash = ipvc.addIPVCToIPFS(ipvc.searchForIPVCDirectory(file));
+        System.out.println("ipvc hash: " + ipvcHash);
+        String ipvcHashIPNS = ipvc.addIPVCToIPNS(ipvcHash);
       } else {
         System.out.println("Add was not successful");
       }

@@ -6,6 +6,8 @@
 package core;
 
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -498,7 +500,8 @@ public class VersionJSONCreator {
     JSONObject version = new JSONObject();
     version.put(JSONOBJECT_AUTHOR_KEY, author);
     version.put(JSONOBJECT_COMMIT_KEY, commitMessage);
-    version.put(JSONOBJECT_DATE_KEY, new Date().toString());
+    DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    version.put(JSONOBJECT_DATE_KEY, df.format(new Date()).replace(" ", "T"));
     version.put(JSONOBJECT_HASH_KEY, hash);
     return version;
   }

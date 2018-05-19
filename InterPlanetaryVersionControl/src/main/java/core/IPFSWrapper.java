@@ -82,7 +82,6 @@ public class IPFSWrapper {
       String args[] = {this.getIPFSExecutable().getCanonicalPath(), "name", "publish", hash};
       CommandExecutor exec = new CommandExecutor(args);
       String response = exec.execute().trim();
-      Matcher m = Pattern.compile("(Published to ([a-zA-Z0-9]{15,100}))").matcher(response);
       String ipnsHash = this.getHashFromIPNSAdd(response);
       Logger.info("File added, IPNS hash: " + ipnsHash);
       this.parentFrame.setCursor(oldCursor);
@@ -374,8 +373,4 @@ public class IPFSWrapper {
     return null; //could not be found
   }
 
-//  public static void main(String[] args) throws IOException, InterruptedException {
-//    IPFSWrapper ipfs = new IPFSWrapper();
-//    System.out.println(ipfs.getHashFromAdd("[QmQP98cKtfXNzru6i9wcvVtVEo1qEwFbJGLG73EQAPkgiK](https://localhost:8080/ipfs/QmQP98cKtfXNzru6i9wcvVtVEo1qEwFbJGLG73EQAPkgiK)"));
-//  }
 }
