@@ -3,6 +3,21 @@ TODO CODE:
 [X] IPFS VCS FOLDER --> HTML/CSS/JS TO CREATE A WEB PAGE TO SEE ALL FILES
 [-] APPLICATION CACHE --> NEED CACHE TO STORE CURRENT DIRS OF FOLDERS TO TRACK AND WHAT BRANCH IS BEING WORKED ON.
 [!]GIT PULL support --> making an ipfs link a git link
+  --> git unix commands:
+  ```
+  ipfs git
+  cp -r <.git folder> <location and name of new folder>
+  cd <to new folder>
+  git update-server-info
+  cp objects/pack/*.pack .
+  git unpack-objects < ./*.pack
+  rn ./*.pack (need to find a way to force yes)
+  ipfs add -r
+  done
+  ```
+  --> need to find windows commands (or add unix commands to path)
+  --> need to figure out how to use command executor for multi line commands
+
 [!]GIT OTHER support --> IPVC on a git link (IPVC is slow), HTTP SERVER (IPFS on this server) hosting a git link --> the server will just redirect the link
 
 [X] = done (maybe just need to tidy it up)
