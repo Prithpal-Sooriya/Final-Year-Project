@@ -3,8 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package core;
+package com.prithpal.interplanetaryversioncontrol.core;
 
+import com.prithpal.interplanetaryversioncontrol.CommandExecutor;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -21,11 +22,23 @@ public class IPVC {
   private static final String COMMITS_JSON = "/.commits.json";
   private static final String COMMITS_HTML = "/index.html";
   private static final String COMMITS_JS = "/displayCommits.js";
+  private static final String GIT_FOLDER = "/.git";
   private String ipnsHash = "";
   private IPFSWrapper ipfs;
 
   public IPVC(IPFSWrapper ipfs) {
     this.ipfs = ipfs;
+  }
+
+  public File searchForIPVCDirectory(File projectDirectory) {
+    if (projectDirectory == null) {
+      return null;
+    }
+    File file = new File(projectDirectory, "/.ipvc");
+    if (file.exists()) {
+      return file;
+    }
+    return null;
   }
 
   public String addIPFS(File f, String commitMessage, String author, String branchName) {
@@ -65,9 +78,9 @@ public class IPVC {
               : VersionJSONCreator.addCommit(
                       FileUtilities.readFile(commitsJSON),
                       hash, commitMessage, author, branchName);
-      
+
       FileUtilities.writeFile(commitsJSON, json);
-      
+
       createCommitsHTML(new File(ipvcLocation.getAbsolutePath() + COMMITS_HTML));
       createCommitsJS(new File(ipvcLocation.getAbsolutePath() + COMMITS_JS));
     } catch (IOException ex) {
@@ -77,14 +90,106 @@ public class IPVC {
     return hash;
   }
 
-  public File searchForIPVCDirectory(File projectDirectory) {
-    if (projectDirectory == null) {
+  //TODO: find a way to handle unix vs windows commands, currently using git directory to get unix commands
+  public String addGitIPFS(File f) throws IOException, InterruptedException {
+    String commandDirectoryGit = "C:\\tools\\git\\bin\\git";
+    String commandDirectoryUnix = "C:\\tools\\git\\usr\\bin";
+
+    if (f == null) {
       return null;
     }
-    File file = new File(projectDirectory, "/.ipvc");
-    if (file.exists()) {
-      return file;
+    if (!f.exists()) {
+      return null;
     }
+
+    //find git folder
+    File projectGitFolder = new File(f.getCanonicalPath() + GIT_FOLDER);
+    if (projectGitFolder.exists()) {
+      File projectGitTempStore = new File(FileUtilities.getSettingsDirectory() + "/" + f.getName() + ".git");
+
+      //cp -r .git tempLocation
+      final String args_cp_git[] = {
+        commandDirectoryUnix + "/cp",
+        "-r",
+        projectGitFolder.getCanonicalPath(),
+        projectGitTempStore.getCanonicalPath()
+      };
+      CommandExecutor exec = new CommandExecutor(args_cp_git);
+      String result = exec.execute();
+      if(result == null) {
+        System.out.println("args_cp_git");
+      }
+
+      //cd <to new folder> && git update-server-info
+      final String args_git_update_server_info[] = {
+        commandDirectoryGit,
+        "update-server-info"
+      };
+      exec = new CommandExecutor(args_git_update_server_info);
+      result = exec.execute(projectGitTempStore.getCanonicalPath());
+      if(result == null) {
+        System.out.println("args_git_update_server_info");
+      }
+      
+      //cp objects/pack/*.pack .
+      final String args_cp_pack[] = {
+        commandDirectoryUnix + "/cp",
+        "objects/pack/*.pack",
+        "."
+      };
+      exec = new CommandExecutor(args_cp_pack);
+      result = exec.execute(projectGitTempStore.getCanonicalPath());
+      if(result == null) {
+        System.out.println("args_cp_pack");
+      }
+      
+      //git unpack-objects < ./*.pack
+      final String args_git_unpack_objects[] = {
+        commandDirectoryGit,
+        "unpack-objects",
+        "<",
+        "./*.pack"
+      };
+      exec = new CommandExecutor(args_git_unpack_objects);
+      result = exec.execute(projectGitTempStore.getCanonicalPath());
+      if(result == null) {
+        System.out.println("args_git_unpack_objects");
+      }
+      
+      //rm -f ./*.pack
+      final String args_rm_pack[] = {
+        commandDirectoryUnix + "/rm",
+        "-f",
+        "./*.pack"
+      };
+      exec = new CommandExecutor(args_rm_pack);
+      result = exec.execute(projectGitTempStore.getCanonicalPath());
+      if(result == null) {
+        System.out.println("args_rm_pack");
+      }
+      
+      String hash =  ipfs.addRecursiveFilesToIPFS(projectGitTempStore, false);
+      
+      //rm temp
+      final String args_rm_temp[] = {
+        commandDirectoryUnix + "/rm",
+        "-r",
+        "-f",
+        projectGitTempStore.getName()
+      };
+      exec = new CommandExecutor(args_rm_temp);
+      result = exec.execute(projectGitTempStore.getParent());
+      if(result == null) {
+        System.out.println("args_rm_temp");
+      }
+      
+      return ipfs.getHashFromIPFSAdd(hash);
+      
+    } else {
+      System.out.println("git does not exist!");
+      System.out.println(projectGitFolder.getCanonicalPath());
+    }
+
     return null;
   }
 
@@ -135,4 +240,11 @@ public class IPVC {
     FileUtilities.writeFile(f, js);
   }
 
+  public static void main(String[] args) throws IOException, InterruptedException {
+    System.out.println("testing git add");
+    IPVC ipvc = new IPVC(new IPFSWrapper());
+    String hash = ipvc.addGitIPFS(new File("C:\\Users\\Prithpal Sooriya\\Desktop\\Final-Year-Project"));
+    System.out.println("hash: " + hash);
+    System.exit(0);
+  }
 }

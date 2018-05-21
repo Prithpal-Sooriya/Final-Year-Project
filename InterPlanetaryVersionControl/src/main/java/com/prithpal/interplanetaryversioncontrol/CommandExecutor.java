@@ -6,6 +6,7 @@
 package com.prithpal.interplanetaryversioncontrol;
 
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -71,11 +72,68 @@ public class CommandExecutor {
       }
     });
     execErrThread.start();
-    
+
     p.waitFor(); //wait for process to end (thus the result/String Buffer is fully complete
     execInThread.join(); //wait for 'in' to die
     execErrThread.join(); //wait for 'exec' to die.
-    
+
     return result.toString();
   }
+
+  //execute command with directory
+  //TODO: decouple and validate params
+  public String execute(String directory) throws IOException, InterruptedException {
+    if (directory == null) {
+      return execute();
+    } else {
+      final StringBuffer result = new StringBuffer();
+      Runtime rt = Runtime.getRuntime();
+      Process p = rt.exec(args, null, new File(directory));
+
+      final Reader in = new InputStreamReader(new BufferedInputStream(p.getInputStream()));
+      final Reader err = new InputStreamReader(p.getErrorStream());
+
+      //thread for handle reading terminal output
+      Thread execInThread = new Thread(new Runnable() {
+        @Override
+        public void run() {
+          try {
+            int c;
+            while ((c = in.read()) != -1) {
+              result.append((char) c);
+            }
+          } catch (IOException ex) {
+            //error when reading
+            //need to find a good way to handle this...
+          }
+        }
+      });
+      execInThread.start();
+
+      //thread for handle reading terminal error
+      Thread execErrThread = new Thread(new Runnable() {
+        @Override
+        public void run() {
+          try {
+            int c;
+            while ((c = err.read()) != -1) {
+              result.append((char) c);
+            }
+          } catch (IOException ex) {
+            //error when reading
+            //need to find a good way to handle this...
+          }
+        }
+      });
+      execErrThread.start();
+
+      p.waitFor(); //wait for process to end (thus the result/String Buffer is fully complete
+      execInThread.join(); //wait for 'in' to die
+      execErrThread.join(); //wait for 'exec' to die.
+
+      return result.toString();
+    }
+
+  }
+
 }

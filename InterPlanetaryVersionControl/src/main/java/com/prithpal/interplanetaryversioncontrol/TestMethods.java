@@ -6,9 +6,9 @@
 package com.prithpal.interplanetaryversioncontrol;
 
 import com.prithpal.interplanetaryversioncontrol.UserInterface.MainUI;
-import core.IPFSWrapper;
-import core.IPVC;
-import core.VersionJSONCreator;
+import com.prithpal.interplanetaryversioncontrol.core.IPFSWrapper;
+import com.prithpal.interplanetaryversioncontrol.core.IPVC;
+import com.prithpal.interplanetaryversioncontrol.core.VersionJSONCreator;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;

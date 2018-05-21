@@ -3,8 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package core;
+package com.prithpal.interplanetaryversioncontrol.core;
 
+import com.prithpal.interplanetaryversioncontrol.OSUtilities;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -45,7 +46,17 @@ public class FileUtilities {
     
   }
   
-  
+  public static String getSettingsDirectory() throws IOException {
+     File fDir = new File(OSUtilities.getSettingsDirectory());
+    if (!fDir.exists()) {
+      if (!fDir.mkdirs()) {
+        com.prithpal.interplanetaryversioncontrol.Logger.error("Could not create settings directory: " + fDir.getCanonicalPath());
+        throw new IOException("Could not create settings directory: " + fDir.getCanonicalPath());
+      }
+    }
+    
+    return fDir.getCanonicalPath();
+  }
   
   
 }

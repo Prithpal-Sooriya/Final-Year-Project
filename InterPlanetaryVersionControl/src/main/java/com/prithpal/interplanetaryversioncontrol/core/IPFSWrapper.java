@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package core;
+package com.prithpal.interplanetaryversioncontrol.core;
 
 import com.prithpal.interplanetaryversioncontrol.CommandExecutor;
 import com.prithpal.interplanetaryversioncontrol.Logger;
@@ -44,6 +44,7 @@ public class IPFSWrapper {
   //constructor
   public IPFSWrapper() {
     this.IPFSProcess = null;
+    this.parentFrame = new JFrame();
   }
 
   public IPFSWrapper(JFrame parentFrame) {
@@ -120,7 +121,7 @@ public class IPFSWrapper {
     if (!file.exists()) {
       return null;
     }
-
+    
     Cursor oldCursor = this.parentFrame.getCursor();
     try {
       this.parentFrame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
