@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import com.prithpal.interplanetaryversioncontrol.Logger;
+import java.util.List;
 
 /**
  *
@@ -18,6 +19,7 @@ import com.prithpal.interplanetaryversioncontrol.Logger;
  */
 public class IPVC {
 
+  //TODO: refractor constants to suit either File(parent, filename) or File(filename) --> not both!!
   private static final String IPVC_FOLDER = ".ipvc";
   private static final String COMMITS_JSON = "/.commits.json";
   private static final String COMMITS_HTML = "/index.html";
@@ -55,6 +57,10 @@ public class IPVC {
       System.err.println("IPVC - add(): folder given was not a directory");
       return null;
     }
+    if (author.trim().isEmpty()) {
+      System.err.println("IPVC - add(): author name was empty");
+      return null;
+    }
 
     File ipvcLocation = new File(f, IPVC_FOLDER);
     boolean firstCommit = !ipvcLocation.exists();
@@ -64,6 +70,19 @@ public class IPVC {
       } catch (IOException ex) {
         System.err.println("IPVC - add(): Issue when creating IPVC folder");
       }
+    } else {
+      //validate ipvc branch name
+      try {
+        String json = FileUtilities.readFile(new File(ipvcLocation, ".commits.json"));
+        boolean branchExists = VersionJSONCreator.branchExists(json, branchName.trim());
+        if (!branchExists) {
+          System.out.println("Branch does not exist!");
+          return null;
+        }
+      } catch (IOException ex) {
+        return null;
+      }
+
     }
 
     //return is in form [hash](url)
@@ -74,10 +93,10 @@ public class IPVC {
       String json = firstCommit
               ? VersionJSONCreator.addCommit(
                       FileUtilities.readFile(commitsJSON),
-                      hash, commitMessage, author)
+                      hash, commitMessage.trim(), author.trim())
               : VersionJSONCreator.addCommit(
                       FileUtilities.readFile(commitsJSON),
-                      hash, commitMessage, author, branchName);
+                      hash, commitMessage.trim(), author.trim(), branchName.trim());
 
       FileUtilities.writeFile(commitsJSON, json);
 
@@ -116,7 +135,7 @@ public class IPVC {
       };
       CommandExecutor exec = new CommandExecutor(args_cp_git);
       String result = exec.execute();
-      if(result == null) {
+      if (result == null) {
         System.out.println("args_cp_git");
       }
 
@@ -127,10 +146,10 @@ public class IPVC {
       };
       exec = new CommandExecutor(args_git_update_server_info);
       result = exec.execute(projectGitTempStore.getCanonicalPath());
-      if(result == null) {
+      if (result == null) {
         System.out.println("args_git_update_server_info");
       }
-      
+
       //cp objects/pack/*.pack .
       final String args_cp_pack[] = {
         commandDirectoryUnix + "/cp",
@@ -139,10 +158,10 @@ public class IPVC {
       };
       exec = new CommandExecutor(args_cp_pack);
       result = exec.execute(projectGitTempStore.getCanonicalPath());
-      if(result == null) {
+      if (result == null) {
         System.out.println("args_cp_pack");
       }
-      
+
       //git unpack-objects < ./*.pack
       final String args_git_unpack_objects[] = {
         commandDirectoryGit,
@@ -152,10 +171,10 @@ public class IPVC {
       };
       exec = new CommandExecutor(args_git_unpack_objects);
       result = exec.execute(projectGitTempStore.getCanonicalPath());
-      if(result == null) {
+      if (result == null) {
         System.out.println("args_git_unpack_objects");
       }
-      
+
       //rm -f ./*.pack
       final String args_rm_pack[] = {
         commandDirectoryUnix + "/rm",
@@ -164,12 +183,12 @@ public class IPVC {
       };
       exec = new CommandExecutor(args_rm_pack);
       result = exec.execute(projectGitTempStore.getCanonicalPath());
-      if(result == null) {
+      if (result == null) {
         System.out.println("args_rm_pack");
       }
-      
-      String hash =  ipfs.addRecursiveFilesToIPFS(projectGitTempStore, false);
-      
+
+      String hash = ipfs.addRecursiveFilesToIPFS(projectGitTempStore, false);
+
       //rm temp
       final String args_rm_temp[] = {
         commandDirectoryUnix + "/rm",
@@ -179,12 +198,12 @@ public class IPVC {
       };
       exec = new CommandExecutor(args_rm_temp);
       result = exec.execute(projectGitTempStore.getParent());
-      if(result == null) {
+      if (result == null) {
         System.out.println("args_rm_temp");
       }
-      
+
       return ipfs.getHashFromIPFSAdd(hash);
-      
+
     } else {
       System.out.println("git does not exist!");
       System.out.println(projectGitFolder.getCanonicalPath());
@@ -204,6 +223,45 @@ public class IPVC {
     }
     String result = ipfs.addRecursiveFilesToIPFS(ipvcProjectDirectory, true);
     return ipfs.getHashFromIPFSAdd(result);
+  }
+
+  public boolean createBranch(File projectDirectory, String currentBranch, String newBranch, String commitMessage, String author) {
+    //validation 
+    if(currentBranch.trim().isEmpty()) {
+      return false;
+    }
+    if(newBranch.trim().isEmpty()) {
+      return false;
+    }
+    if(commitMessage.trim().isEmpty()) {
+      return false;
+    }
+    if(author.trim().isEmpty()) {
+      return false;
+    }
+    
+    File ipvcFolder = searchForIPVCDirectory(projectDirectory);
+    if (ipvcFolder == null) {
+      System.err.println("project folder does not contains ipvc folder");
+      return false;
+    }
+    if (ipvcFolder.exists() && ipvcFolder.isDirectory()) {
+      File commitsJSON = new File(ipvcFolder + COMMITS_JSON);
+      try {
+        String json = FileUtilities.readFile(commitsJSON);
+        if(VersionJSONCreator.branchExists(json, newBranch.trim())) {
+          System.err.println("IPVC - createBranch: branch exists!");
+          return false;
+        }
+        json = VersionJSONCreator.addBranch(json, currentBranch, newBranch, commitMessage, author);
+        FileUtilities.writeFile(commitsJSON, json);
+        return true;
+      } catch (Exception ex) {
+        System.err.println("IPVC - create branch: could not read json");
+      }
+
+    }
+    return false;
   }
 
   private void initIPVC(File f) throws IOException {

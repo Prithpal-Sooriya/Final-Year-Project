@@ -6,6 +6,7 @@
 package com.prithpal.interplanetaryversioncontrol.core;
 
 
+import com.prithpal.interplanetaryversioncontrol.beans.VersionBean;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -297,6 +298,16 @@ public class VersionJSONCreator {
     return null;
   }
 
+  public static boolean branchExists(String json, String branchName) {
+    List<String> branches = VersionJSONCreator.getNamesOfBranches(json);
+        for (String branch : branches) {
+          if (branchName.trim().equalsIgnoreCase(branch)) {
+            return true;
+          }
+        }
+        return false;
+  }
+  
   public static String mergeBranch(String json, String currentBranch, String destinationBranch, String commitMessage, String author, boolean deleteBranch) {
     //sanitation
     if (currentBranch == null) {
@@ -375,6 +386,31 @@ public class VersionJSONCreator {
     return null;
   }
 
+  public VersionBean getBranchHead(String json, String branch) {
+    try {
+      JSONParser parser = new JSONParser();
+      JSONObject branches = (JSONObject) parser.parse(json);
+      JSONArray branchesArr = (JSONArray) branches.get(JSONARRAY_BRANCHES_KEY);
+      JSONObject branchInfo = searchJSONArrayBranches(branchesArr, branch);
+      
+      if(branchInfo != null) {
+        JSONObject head = (JSONObject)((JSONObject) branchInfo.get(branch.trim())).get(JSONOBJECT_HEAD_KEY); //dev: {head: {..., hash:..}}
+        String hash = (String) head.get(JSONOBJECT_HASH_KEY); //head:{...., hash:...}
+        String commitMessage = (String) head.get(JSONOBJECT_COMMIT_KEY);
+        String author = (String) head.get(JSONOBJECT_AUTHOR_KEY);
+        String dateStr = (String) head.get(JSONOBJECT_DATE_KEY);
+        
+        return new VersionBean(dateStr, commitMessage, author, hash);
+      }
+      return null;
+      
+    } catch (ParseException ex) {
+      System.err.println("VersionJSONCreator - getBranchHead() : could not parse json");
+      return null;
+    }
+  }
+  
+ 
   /*
   private functions
   -----
@@ -525,7 +561,7 @@ public class VersionJSONCreator {
     System.out.println("VersionJSONCreator - searchJSONArrayBranches(): should not have reached this part of function");
     return null;
   }
-
+  
   /**
    * main() main method for testing purposes only.
    */
