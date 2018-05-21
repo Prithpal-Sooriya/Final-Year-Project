@@ -11,7 +11,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import com.prithpal.interplanetaryversioncontrol.Logger;
+import com.prithpal.interplanetaryversioncontrol.beans.VersionBean;
 import java.util.List;
+import java.util.logging.Level;
 
 /**
  *
@@ -227,19 +229,19 @@ public class IPVC {
 
   public boolean createBranch(File projectDirectory, String currentBranch, String newBranch, String commitMessage, String author) {
     //validation 
-    if(currentBranch.trim().isEmpty()) {
+    if (currentBranch.trim().isEmpty()) {
       return false;
     }
-    if(newBranch.trim().isEmpty()) {
+    if (newBranch.trim().isEmpty()) {
       return false;
     }
-    if(commitMessage.trim().isEmpty()) {
+    if (commitMessage.trim().isEmpty()) {
       return false;
     }
-    if(author.trim().isEmpty()) {
+    if (author.trim().isEmpty()) {
       return false;
     }
-    
+
     File ipvcFolder = searchForIPVCDirectory(projectDirectory);
     if (ipvcFolder == null) {
       System.err.println("project folder does not contains ipvc folder");
@@ -249,19 +251,133 @@ public class IPVC {
       File commitsJSON = new File(ipvcFolder + COMMITS_JSON);
       try {
         String json = FileUtilities.readFile(commitsJSON);
-        if(VersionJSONCreator.branchExists(json, newBranch.trim())) {
+        if (VersionJSONCreator.branchExists(json, newBranch.trim())) {
           System.err.println("IPVC - createBranch: branch exists!");
           return false;
         }
         json = VersionJSONCreator.addBranch(json, currentBranch, newBranch, commitMessage, author);
+        if (json == null) {
+          return false;
+        }
         FileUtilities.writeFile(commitsJSON, json);
         return true;
       } catch (Exception ex) {
         System.err.println("IPVC - create branch: could not read json");
       }
-
     }
     return false;
+  }
+
+  public boolean deleteBranch(File projectDirectory, String branch) {
+    File ipvcFolder = searchForIPVCDirectory(projectDirectory);
+    if (ipvcFolder == null) {
+      System.err.println("project folder does not contains ipvc folder");
+      return false;
+    }
+    if (ipvcFolder.exists() && ipvcFolder.isDirectory()) {
+      File commitsJSON = new File(ipvcFolder + COMMITS_JSON);
+      try {
+        String json = FileUtilities.readFile(commitsJSON);
+        if (!VersionJSONCreator.branchExists(json, branch.trim())) {
+          System.err.println("IPVC - createBranch: branch does not exists!");
+          return false;
+        }
+        json = VersionJSONCreator.deleteBranch(json, branch);
+        if (json == null) {
+          return false;
+        }
+        FileUtilities.writeFile(commitsJSON, json);
+        return true;
+      } catch (IOException ex) {
+        System.err.println("IPVC - create branch: could not read json");
+        return false;
+      }
+    }
+    return false;
+  }
+
+  public boolean mergeBranch(File projectDirectory, String sourceBranch, String destinationBranch, String commitMessage, String author, boolean deleteBranch) {
+    File ipvcFolder = searchForIPVCDirectory(projectDirectory);
+    if (ipvcFolder == null) {
+      System.err.println("project folder does not contains ipvc folder");
+      return false;
+    }
+    if (ipvcFolder.exists() && ipvcFolder.isDirectory()) {
+      File commitsJSON = new File(ipvcFolder + COMMITS_JSON);
+      try {
+        String json = FileUtilities.readFile(commitsJSON);
+        if (!VersionJSONCreator.branchExists(json, sourceBranch.trim())) {
+          System.err.println("IPVC - mergeBranch: sourceBranch does not exists!");
+          return false;
+        }
+        if (!VersionJSONCreator.branchExists(json, destinationBranch.trim())) {
+          System.err.println("IPVC - mergeBranch: sourceBranch does not exists!");
+          return false;
+        }
+        json = VersionJSONCreator.mergeBranch(json, sourceBranch.trim(), destinationBranch.trim(), commitMessage.trim(), author.trim(), deleteBranch);
+        if (json == null) {
+          return false;
+        }
+        FileUtilities.writeFile(commitsJSON, json);
+        return true;
+      } catch (IOException ex) {
+        System.err.println("IPVC - merge branch: could not read json");
+        return false;
+      }
+    }
+    return false;
+  }
+
+  public VersionBean getLatestVersion(File projectDirectory, String branch) {
+    File ipvcDirectory = searchForIPVCDirectory(projectDirectory);
+    if (ipvcDirectory == null) {
+      System.err.println("IPVC - getLatestVersion(): ipvc directory not found in project");
+      return null;
+    }
+    if (branch == null) {
+      return null;
+    }
+
+    if (ipvcDirectory.exists() && ipvcDirectory.isDirectory()) {
+      File commitsJSON = new File(ipvcDirectory + COMMITS_JSON);
+      try {
+        String json = FileUtilities.readFile(commitsJSON);
+        VersionBean head = null;
+        if (VersionJSONCreator.branchExists(json, branch)) {
+          head = VersionJSONCreator.getBranchHead(json, branch);
+        }
+        return head; //will be null if the branch does not exist...
+
+      } catch (Exception ex) {
+        System.err.println("IPVC - get latest version: could not read json");
+      }
+    }
+    return null;
+
+  }
+
+  public List<VersionBean> getHistory(File projectDirectory, String branch) {
+    File ipvcDirectory = searchForIPVCDirectory(projectDirectory);
+    if (ipvcDirectory == null) {
+      System.err.println("IPVC - getLatestVersion(): ipvc directory not found in project");
+      return null;
+    }
+    if (branch == null) {
+      return null;
+    }
+
+    if (ipvcDirectory.exists() && ipvcDirectory.isDirectory()) {
+      File commitsJSON = new File(ipvcDirectory + COMMITS_JSON);
+      try {
+        String json = FileUtilities.readFile(commitsJSON);
+        if (VersionJSONCreator.branchExists(json, branch)) {
+          return VersionJSONCreator.getBranchVersions(json, branch);
+        }
+      } catch (IOException ex) {
+        System.err.println("IPVC - get branch history: could not read json");
+      }
+    }
+    return null;
   }
 
   private void initIPVC(File f) throws IOException {

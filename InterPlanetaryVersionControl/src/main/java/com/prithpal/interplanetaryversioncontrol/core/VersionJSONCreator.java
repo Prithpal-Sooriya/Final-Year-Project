@@ -5,10 +5,10 @@
  */
 package com.prithpal.interplanetaryversioncontrol.core;
 
-
 import com.prithpal.interplanetaryversioncontrol.beans.VersionBean;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -230,9 +230,9 @@ public class VersionJSONCreator {
       //head will be the new version just created
       //currentJSONVersion(string hash, string commitMessage, String author)
       JSONObject head = createJSONVersion(
-        (String) ((JSONObject) currentBranchInfo.get(JSONOBJECT_HEAD_KEY)).get(JSONOBJECT_HASH_KEY),
-        commitMessage,
-        author
+              (String) ((JSONObject) currentBranchInfo.get(JSONOBJECT_HEAD_KEY)).get(JSONOBJECT_HASH_KEY),
+              commitMessage,
+              author
       );
       //create new branch
       JSONObject branch = VersionJSONCreator.createBranch(newBranch.trim(), head);
@@ -285,12 +285,12 @@ public class VersionJSONCreator {
 
       //return list of branch names
       return (List<String>) branchesArr.stream()
-        .map(branch
-          -> (String) ((JSONObject) branch)
-          .keySet()
-          .stream()
-          .findFirst().get())
-        .collect(Collectors.toList());
+              .map(branch
+                      -> (String) ((JSONObject) branch)
+                      .keySet()
+                      .stream()
+                      .findFirst().get())
+              .collect(Collectors.toList());
     } catch (ParseException ex) {
       Logger.getLogger(VersionJSONCreator.class.getName()).log(Level.SEVERE, null, ex);
     }
@@ -300,14 +300,14 @@ public class VersionJSONCreator {
 
   public static boolean branchExists(String json, String branchName) {
     List<String> branches = VersionJSONCreator.getNamesOfBranches(json);
-        for (String branch : branches) {
-          if (branchName.trim().equalsIgnoreCase(branch)) {
-            return true;
-          }
-        }
-        return false;
+    for (String branch : branches) {
+      if (branchName.trim().equalsIgnoreCase(branch)) {
+        return true;
+      }
+    }
+    return false;
   }
-  
+
   public static String mergeBranch(String json, String currentBranch, String destinationBranch, String commitMessage, String author, boolean deleteBranch) {
     //sanitation
     if (currentBranch == null) {
@@ -346,39 +346,38 @@ public class VersionJSONCreator {
 
       //create new version
       //createJSONVersion(hash, commitMessage, author)
-      JSONObject head = (JSONObject)((JSONObject) currentBranchInfo.get(currentBranch.trim())).get(JSONOBJECT_HEAD_KEY); //dev: {head: {..., hash:..}}
+      JSONObject head = (JSONObject) ((JSONObject) currentBranchInfo.get(currentBranch.trim())).get(JSONOBJECT_HEAD_KEY); //dev: {head: {..., hash:..}}
       String hash = (String) head.get(JSONOBJECT_HASH_KEY); //head:{...., hash:...}
 //      System.out.println(hash);
       head = createJSONVersion(
-        hash,
-        newCommitMessage,
-        newAuthor
+              hash,
+              newCommitMessage,
+              newAuthor
       );
-      
+
       //check if want to remove currentBranch
-      if(deleteBranch && !currentBranch.trim().equals(JSONOBJECT_BRANCH_MASTER_KEY)) {
+      if (deleteBranch && !currentBranch.trim().equals(JSONOBJECT_BRANCH_MASTER_KEY)) {
         branchesArr.remove(currentBranchInfo);
       }
-      
+
       //update destination branch
       int indexOfDestination = branchesArr.indexOf(destinationBranchInfo);
       branchesArr.remove(destinationBranchInfo);
-      
+
       //add the head to the destination branch (head and versions)
-      JSONObject destinationBranchInfoHeader = (JSONObject)destinationBranchInfo.get(destinationBranch.trim()); //master:{head : {....}, versions:{....}}
+      JSONObject destinationBranchInfoHeader = (JSONObject) destinationBranchInfo.get(destinationBranch.trim()); //master:{head : {....}, versions:{....}}
       destinationBranchInfoHeader.put(JSONOBJECT_HEAD_KEY, head);
       JSONArray destinationBranchInfoVersions = (JSONArray) destinationBranchInfoHeader.get(JSONARRAY_VERSIONS_KEY);//versions:{....}
       destinationBranchInfoVersions.add(head);
       destinationBranchInfoHeader.put(JSONARRAY_VERSIONS_KEY, destinationBranchInfoVersions); //put versions into header
       destinationBranchInfo.put(destinationBranch.trim(), destinationBranchInfoHeader);
-      
+
       branchesArr.add(indexOfDestination, destinationBranchInfo);
 
       //combine back to root json and return json string
       branches.put(JSONARRAY_BRANCHES_KEY, branchesArr);
       return branches.toJSONString();
-      
-      
+
     } catch (ParseException ex) {
       Logger.getLogger(VersionJSONCreator.class.getName()).log(Level.SEVERE, null, ex);
     }
@@ -386,31 +385,54 @@ public class VersionJSONCreator {
     return null;
   }
 
-  public VersionBean getBranchHead(String json, String branch) {
+  public static VersionBean getBranchHead(String json, String branch) {
+    try {
+      JSONParser parser = new JSONParser();
+      JSONObject branches = (JSONObject) parser.parse(json);
+      JSONArray branchesArr = (JSONArray) branches.get(JSONARRAY_BRANCHES_KEY);
+      JSONObject branchInfo = searchJSONArrayBranches(branchesArr, branch);
+      if (branchInfo != null) {
+        JSONObject head = (JSONObject) ((JSONObject) branchInfo.get(branch.trim())).get(JSONOBJECT_HEAD_KEY); //dev: {head: {..., hash:..}}
+        return createVersionBean(head);
+      }
+      return null;
+
+    } catch (ParseException ex) {
+      System.err.println("VersionJSONCreator - getBranchHead() : could not parse json");
+      return null;
+    }
+  }
+
+  public static List<VersionBean> getBranchVersions(String json, String branch) {
     try {
       JSONParser parser = new JSONParser();
       JSONObject branches = (JSONObject) parser.parse(json);
       JSONArray branchesArr = (JSONArray) branches.get(JSONARRAY_BRANCHES_KEY);
       JSONObject branchInfo = searchJSONArrayBranches(branchesArr, branch);
       
-      if(branchInfo != null) {
-        JSONObject head = (JSONObject)((JSONObject) branchInfo.get(branch.trim())).get(JSONOBJECT_HEAD_KEY); //dev: {head: {..., hash:..}}
-        String hash = (String) head.get(JSONOBJECT_HASH_KEY); //head:{...., hash:...}
-        String commitMessage = (String) head.get(JSONOBJECT_COMMIT_KEY);
-        String author = (String) head.get(JSONOBJECT_AUTHOR_KEY);
-        String dateStr = (String) head.get(JSONOBJECT_DATE_KEY);
-        
-        return new VersionBean(dateStr, commitMessage, author, hash);
+      if (branchInfo != null) {
+        ArrayList<VersionBean> versionBeans = new ArrayList<>();
+        JSONArray versions = (JSONArray) branchInfo.get(JSONARRAY_VERSIONS_KEY);
+        for (Object version : versions) {
+          versionBeans.add((VersionBean)version);
+        }
+        return versionBeans;
       }
       return null;
-      
     } catch (ParseException ex) {
-      System.err.println("VersionJSONCreator - getBranchHead() : could not parse json");
+      System.err.println("VersionJSONCreator - getBranchVersions() : could not parse json");
       return null;
     }
   }
-  
- 
+
+  private static VersionBean createVersionBean(JSONObject version) { //e.g. jsonobject version = head and versions
+    String hash = (String) version.get(JSONOBJECT_HASH_KEY); //head:{...., hash:...}
+    String commitMessage = (String) version.get(JSONOBJECT_COMMIT_KEY);
+    String author = (String) version.get(JSONOBJECT_AUTHOR_KEY);
+    String dateStr = (String) version.get(JSONOBJECT_DATE_KEY);
+    return new VersionBean(dateStr, commitMessage, author, hash);
+  }
+
   /*
   private functions
   -----
@@ -483,7 +505,7 @@ public class VersionJSONCreator {
    * @param branchToDelete branchName to delete
    * @return String result json string. It will return null if there is an error
    */
-  private static String deleteBranch(String json, String branchToDelete) {
+   public static String deleteBranch(String json, String branchToDelete) {
     //sanitation
     if (branchToDelete == null) {
       System.out.println("VersionJSONCreator - deleteBranch(): branch to delete was null");
@@ -553,15 +575,15 @@ public class VersionJSONCreator {
    */
   private static JSONObject searchJSONArrayBranches(JSONArray arr, String branchKey) {
     Optional<JSONObject> branch = arr.stream()
-      .filter(jsonObj -> ((JSONObject) jsonObj).containsKey(branchKey))
-      .findFirst();
+            .filter(jsonObj -> ((JSONObject) jsonObj).containsKey(branchKey))
+            .findFirst();
     if (branch.isPresent()) {
       return branch.get();
     }
     System.out.println("VersionJSONCreator - searchJSONArrayBranches(): should not have reached this part of function");
     return null;
   }
-  
+
   /**
    * main() main method for testing purposes only.
    */
@@ -588,8 +610,8 @@ public class VersionJSONCreator {
     //add branch test
     System.out.println("Create branch 'Development' test");
     json = VersionJSONCreator.addBranch(
-      json, VersionJSONCreator.JSONOBJECT_BRANCH_MASTER_KEY, branchDevelopment,
-      "Creating a development branch, that is a branch off the master branch", "Prithpal Sooriya");
+            json, VersionJSONCreator.JSONOBJECT_BRANCH_MASTER_KEY, branchDevelopment,
+            "Creating a development branch, that is a branch off the master branch", "Prithpal Sooriya");
     System.out.println(json);
 //    scan.next();
 
@@ -619,7 +641,7 @@ public class VersionJSONCreator {
     System.out.println("Merge branches test");
     json2 = VersionJSONCreator.mergeBranch(json, JSONOBJECT_BRANCH_MASTER_KEY, branchDevelopment, "merging dev to master and removing dev branch", "Prithpal Sooriya", true);
     System.out.println(json2);
-    
+
   }
 
 }

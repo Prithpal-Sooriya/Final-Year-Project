@@ -25,7 +25,7 @@ public class VersionBean {
 
   //TODO: remove unneccesary setters and getters
   public String getDate() {
-    return date;
+    return date.replace("T", " ");
   }
 
   public void setDate(String date) {
