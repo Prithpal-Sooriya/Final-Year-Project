@@ -71,7 +71,6 @@ public class MainUI extends javax.swing.JFrame {
 
     setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
     setForeground(java.awt.Color.white);
-    setMaximumSize(new java.awt.Dimension(1000, 600));
     setMinimumSize(new java.awt.Dimension(1000, 600));
     setResizable(false);
 
@@ -204,11 +203,11 @@ public class MainUI extends javax.swing.JFrame {
     getContentPane().setLayout(layout);
     layout.setHorizontalGroup(
       layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addComponent(jPanel2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 1032, Short.MAX_VALUE)
+      .addComponent(jPanel2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
     );
     layout.setVerticalGroup(
       layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addComponent(jPanel2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 520, Short.MAX_VALUE)
+      .addComponent(jPanel2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
     );
 
     pack();
@@ -409,9 +408,9 @@ public class MainUI extends javax.swing.JFrame {
         }
       }
       if (ipvc.getFromIPFS(destinationToAdd, hash, projectName)) {
-        System.out.println("Success getting file");
+        JOptionPane.showMessageDialog(this, "Success getting file");
       } else {
-        JOptionPane.showMessageDialog(this, "Not able to get file (is hash correct?)", "error - could not get hash", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(this, "Not able to get file (hash unreachable)", "error - could not get hash", JOptionPane.ERROR_MESSAGE);
       }
     } else {
       JOptionPane.showMessageDialog(this, "Need to provide a directory to add", "error - did not add directory", JOptionPane.ERROR_MESSAGE);
@@ -435,7 +434,7 @@ public class MainUI extends javax.swing.JFrame {
       if (ipvc.deleteBranch(f, branch)) {
         JOptionPane.showMessageDialog(this, "Delete successful");
       } else {
-        JOptionPane.showMessageDialog(this, "Delete failed");
+        JOptionPane.showMessageDialog(this, "Delete failed", "error - cannot delete", JOptionPane.ERROR_MESSAGE);
       }
     } else {
       JOptionPane.showMessageDialog(this, "Need to provide a directory to delete branch", "error - did not add directory", JOptionPane.ERROR_MESSAGE);

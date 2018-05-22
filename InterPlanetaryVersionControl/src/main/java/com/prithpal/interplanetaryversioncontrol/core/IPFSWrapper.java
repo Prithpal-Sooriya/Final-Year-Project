@@ -93,21 +93,26 @@ public class IPFSWrapper {
       Logger.warning("IPFS GET command: Will wait for before destroying"
               + "(potentially unreachable hash...)");
       Thread.sleep(5000);
-      if (p.isAlive()) {
+      if (p.isAlive() || p.exitValue()==1) {
         Logger.warning("IPFS GET command: hash was not reached, so destroying process");
         p.destroy();
         return false;
       }
       
-      if (newDirName != null) {
-        String path = destinationPath.getCanonicalPath() + "/" + hash;
-        File file = new File(path);
-        File newFile = new File(destinationPath.getAbsoluteFile() + "/" + newDirName);
-        file.renameTo(newFile);
+      if(p.exitValue()==0){
+        System.out.println("exit value: " +p.exitValue());
+        if (newDirName != null) {
+          String path = destinationPath.getCanonicalPath() + "/" + hash;
+          File file = new File(path);
+          File newFile = new File(destinationPath.getAbsoluteFile() + "/" + newDirName);
+          file.renameTo(newFile);
+          return true;
+        }
       }
-      return true;
     } catch (IOException ex) {
+      return false;
     } catch (InterruptedException ex) {
+      return false;
     }
     return false;
   }
@@ -323,7 +328,7 @@ public class IPFSWrapper {
             + "IPFS Server requires ports 4001, 5001, and 8080 on the system for its own use.\n"
             + "The IPFS Server will be automatically stopped once you close this application\n"
             + "The startup of IPFS and accessing links on IPFS may start off slow (so as to \n"
-            + "connect to other peers), so please be patient.n"
+            + "connect to other peers), so please be patient.\n"
             + "\n"
             + "Do you wish to start an IPFS server on your PC?",
             "Confirm starting IPFS server...",
