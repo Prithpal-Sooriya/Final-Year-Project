@@ -5,11 +5,40 @@
  */
 package com.prithpal.interplanetaryversioncontrol.UserInterface;
 
+import com.prithpal.interplanetaryversioncontrol.Logger;
+import com.prithpal.interplanetaryversioncontrol.OSUtilities;
+import com.prithpal.interplanetaryversioncontrol.controller.Controllers;
+import com.prithpal.interplanetaryversioncontrol.core.FileUtilities;
+import com.prithpal.interplanetaryversioncontrol.core.IPFSWrapper;
+import com.prithpal.interplanetaryversioncontrol.core.IPVC;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.Date;
+import java.util.List;
+import java.util.logging.Level;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.UIManager;
+
 /**
  *
- * @author Prithpal
+ * @author Prithpal TODO: this code is very duplicated and needs to be
+ * refractored!!
  */
 public class MainUI extends javax.swing.JFrame {
+
+  //statics
+  private static final String SETTINGS_CURRENT_PROJECT = "currentProject.flag";
+  private static String currentProjectPath = null;
+
+  //ipvc to access
+  private IPVC ipvc = new IPVC(new IPFSWrapper(this));
 
   /**
    * Creates new form MainUI
@@ -27,74 +56,457 @@ public class MainUI extends javax.swing.JFrame {
   // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
   private void initComponents() {
 
-    jPanel1 = new javax.swing.JPanel();
-    jSeparator1 = new javax.swing.JSeparator();
-    jButton1 = new javax.swing.JButton();
+    jPanel2 = new javax.swing.JPanel();
+    jLabel1 = new javax.swing.JLabel();
+    BtnChooseProject = new javax.swing.JButton();
+    labelProjectPath = new javax.swing.JLabel();
+    btnAdd = new javax.swing.JButton();
+    btnGet = new javax.swing.JButton();
+    btnCreateBranch = new javax.swing.JButton();
+    btnMergeBranch = new javax.swing.JButton();
+    btnDeleteBranch = new javax.swing.JButton();
+    btnPublishIPFS = new javax.swing.JButton();
+    btnPublishIPNS = new javax.swing.JButton();
+    btnPublishGit = new javax.swing.JButton();
 
     setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
     setForeground(java.awt.Color.white);
     setMaximumSize(new java.awt.Dimension(1000, 600));
     setMinimumSize(new java.awt.Dimension(1000, 600));
-    setPreferredSize(new java.awt.Dimension(1000, 600));
     setResizable(false);
 
-    jPanel1.setBackground(new java.awt.Color(36, 41, 46));
-    jPanel1.setPreferredSize(new java.awt.Dimension(1001, 299));
+    jPanel2.setBackground(new java.awt.Color(38, 141, 146));
 
-    jSeparator1.setOrientation(javax.swing.SwingConstants.VERTICAL);
+    jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
+    jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ipfs-logo-vector-ice.png"))); // NOI18N
+    jLabel1.setToolTipText("");
 
-    jButton1.setText("Add a file");
-    jButton1.setToolTipText("");
-    jButton1.addActionListener(new java.awt.event.ActionListener() {
+    BtnChooseProject.setText("Choose Project");
+    BtnChooseProject.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
-        jButton1ActionPerformed(evt);
+        BtnChooseProjectActionPerformed(evt);
       }
     });
 
-    javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-    jPanel1.setLayout(jPanel1Layout);
-    jPanel1Layout.setHorizontalGroup(
-      jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-        .addContainerGap(498, Short.MAX_VALUE)
-        .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 11, javax.swing.GroupLayout.PREFERRED_SIZE)
-        .addGap(18, 18, 18)
-        .addComponent(jButton1)
-        .addGap(392, 392, 392))
+    labelProjectPath.setForeground(new java.awt.Color(0, 0, 0));
+    labelProjectPath.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+    labelProjectPath.setText("<<NO PROJECT SPECIFIED>>");
+
+    btnAdd.setText("Add to IPFS");
+    btnAdd.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        btnAddActionPerformed(evt);
+      }
+    });
+
+    btnGet.setText("Get from IPFS");
+    btnGet.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        btnGetActionPerformed(evt);
+      }
+    });
+
+    btnCreateBranch.setText("Create Branch");
+    btnCreateBranch.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        btnCreateBranchActionPerformed(evt);
+      }
+    });
+
+    btnMergeBranch.setText("Merge Branch");
+    btnMergeBranch.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        btnMergeBranchActionPerformed(evt);
+      }
+    });
+
+    btnDeleteBranch.setText("Delete Branch");
+    btnDeleteBranch.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        btnDeleteBranchActionPerformed(evt);
+      }
+    });
+
+    btnPublishIPFS.setText("Publish to IPFS");
+    btnPublishIPFS.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        btnPublishIPFSActionPerformed(evt);
+      }
+    });
+
+    btnPublishIPNS.setText("Publish to IPNS");
+    btnPublishIPNS.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        btnPublishIPNSActionPerformed(evt);
+      }
+    });
+
+    btnPublishGit.setText("Integrate Git Repository");
+    btnPublishGit.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        btnPublishGitActionPerformed(evt);
+      }
+    });
+
+    javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+    jPanel2.setLayout(jPanel2Layout);
+    jPanel2Layout.setHorizontalGroup(
+      jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+      .addGroup(jPanel2Layout.createSequentialGroup()
+        .addContainerGap()
+        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+          .addComponent(btnAdd)
+          .addComponent(BtnChooseProject)
+          .addComponent(labelProjectPath)
+          .addComponent(btnGet)
+          .addComponent(btnCreateBranch)
+          .addComponent(btnMergeBranch)
+          .addComponent(btnDeleteBranch)
+          .addComponent(btnPublishIPFS)
+          .addComponent(btnPublishIPNS)
+          .addComponent(btnPublishGit))
+        .addGap(351, 351, 351)
+        .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
     );
-    jPanel1Layout.setVerticalGroup(
-      jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addComponent(jSeparator1, javax.swing.GroupLayout.Alignment.TRAILING)
-      .addGroup(jPanel1Layout.createSequentialGroup()
-        .addGap(44, 44, 44)
-        .addComponent(jButton1)
-        .addContainerGap(223, Short.MAX_VALUE))
+    jPanel2Layout.setVerticalGroup(
+      jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+      .addGroup(jPanel2Layout.createSequentialGroup()
+        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+          .addGroup(jPanel2Layout.createSequentialGroup()
+            .addGap(19, 19, 19)
+            .addComponent(BtnChooseProject)
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+            .addComponent(labelProjectPath)
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+            .addComponent(btnAdd)
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+            .addComponent(btnGet)
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+            .addComponent(btnCreateBranch)
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+            .addComponent(btnMergeBranch)
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+            .addComponent(btnDeleteBranch)
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+            .addComponent(btnPublishIPFS)
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+            .addComponent(btnPublishIPNS)
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+            .addComponent(btnPublishGit)
+            .addGap(0, 0, Short.MAX_VALUE))
+          .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        .addGap(8, 8, 8))
     );
+
+    BtnChooseProject.getAccessibleContext().setAccessibleDescription("");
 
     javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
     getContentPane().setLayout(layout);
     layout.setHorizontalGroup(
       layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 1000, javax.swing.GroupLayout.PREFERRED_SIZE)
+      .addComponent(jPanel2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 1032, Short.MAX_VALUE)
     );
     layout.setVerticalGroup(
       layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addGroup(layout.createSequentialGroup()
-        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 600, javax.swing.GroupLayout.PREFERRED_SIZE)
-        .addGap(0, 0, Short.MAX_VALUE))
+      .addComponent(jPanel2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 520, Short.MAX_VALUE)
     );
 
     pack();
   }// </editor-fold>//GEN-END:initComponents
 
-  private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+  private void BtnChooseProjectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_BtnChooseProjectActionPerformed
     // TODO add your handling code here:
-  }//GEN-LAST:event_jButton1ActionPerformed
+    File projectFile = Controllers.fileChooser();
+    try {
+      File projectCacheFile = new File(new File(FileUtilities.getSettingsDirectory()), SETTINGS_CURRENT_PROJECT);
+      FileUtilities.writeFile(projectCacheFile, projectFile.getCanonicalPath());
+      currentProjectPath = projectFile.getCanonicalPath();
+    } catch (IOException ex) {
+      System.err.println("IPVC_REPL - main(): could not read project cache file");
+    }
+    if (MainUI.validateCurrentProject()) {
+      this.setProjectLabel();
+    }
+
+  }//GEN-LAST:event_BtnChooseProjectActionPerformed
+
+  private void btnAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddActionPerformed
+    if (!MainUI.validateCurrentProject()) {
+      JOptionPane.showMessageDialog(this, "Project directory doesn't exist", "Issue with add!", JOptionPane.ERROR_MESSAGE);
+    } else {
+      boolean loop = true;
+      String author = "";
+      while (loop) {
+        author = JOptionPane.showInputDialog("Enter Author");
+        if (author != null) {
+          if (!author.trim().isEmpty()) {
+            loop = false;
+          }
+        }
+      }
+
+      String commitMessage = JOptionPane.showInputDialog("Enter commit message");
+      if (commitMessage == null) {
+        commitMessage = "";
+      }
+
+      File f = new File(currentProjectPath);
+      File ipvcFolder = ipvc.searchForIPVCDirectory(f);
+      String branch = "master";
+      if (ipvcFolder != null) {
+        if (ipvcFolder.exists() && ipvcFolder.isDirectory()) {
+          List<String> branchNames = ipvc.getBranchNames(f);
+          while (true) {
+            branch = JOptionPane.showInputDialog("Select Branch (" + String.join(",", branchNames) + ")");
+            if (branchNames.contains(branch)) {
+              break;
+            }
+          }
+        }
+      }
+      ipvc.addIPFS(f, commitMessage.trim(), author.trim(), branch.trim());
+    }
+  }//GEN-LAST:event_btnAddActionPerformed
+
+  private void btnCreateBranchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCreateBranchActionPerformed
+    if (validateCurrentProject()) {
+      String author = null;
+      while (true) {
+        author = JOptionPane.showInputDialog("Enter author:");
+        if (author != null) {
+          if (!author.trim().isEmpty()) {
+            author = author.trim();
+            break;
+          }
+        }
+      }
+
+      String commitMessage = JOptionPane.showInputDialog("Enter commit message");
+      if (commitMessage == null) {
+        commitMessage = "";
+      }
+      commitMessage = commitMessage.trim();
+
+      File f = new File(currentProjectPath);
+      List<String> branchNames = ipvc.getBranchNames(f);
+      String currentBranch = null;
+      while (true) {
+        currentBranch = JOptionPane.showInputDialog("Enter branch to fork (" + String.join(",", branchNames) + ")");
+        if (currentBranch != null) {
+          if (branchNames.contains(currentBranch)) {
+            break;
+          }
+        }
+      }
+
+      String newBranch = null;
+      while (true) {
+        newBranch = JOptionPane.showInputDialog("Enter new branch name");
+        if (newBranch != null) {
+          if (!newBranch.trim().isEmpty()) {
+            newBranch = newBranch.trim();
+            break;
+          }
+        }
+      }
+
+      boolean success = ipvc.createBranch(f, currentBranch, newBranch, commitMessage, author);
+      if (success) {
+        JOptionPane.showMessageDialog(this, "Branch successfully created");
+      }
+
+    } else {
+      JOptionPane.showMessageDialog(this, "could not find directory", "error - could not find directory", JOptionPane.ERROR_MESSAGE);
+    }
+  }//GEN-LAST:event_btnCreateBranchActionPerformed
+
+  private void btnMergeBranchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMergeBranchActionPerformed
+    if (validateCurrentProject()) {
+      File f = new File(currentProjectPath);
+      List<String> branchNames = ipvc.getBranchNames(f);
+      String sourceBranch = null;
+      while (true) {
+        sourceBranch = JOptionPane.showInputDialog("Enter branch to merge: (" + String.join(",", branchNames) + ")");
+        if (sourceBranch != null) {
+          if (branchNames.contains(sourceBranch)) {
+            break;
+          }
+        }
+      }
+
+      branchNames.remove(sourceBranch); //do not want to merge on itself
+      String destinationBranch = null;
+      while (true) {
+        destinationBranch = JOptionPane.showInputDialog("Enter branch to merge to: (" + String.join(",", branchNames) + ")");
+        if (destinationBranch != null) {
+          if (branchNames.contains(destinationBranch)) {
+            break;
+          }
+        }
+      }
+
+      String author = null;
+      while (true) {
+        author = JOptionPane.showInputDialog("Enter author:");
+        if (author != null) {
+          if (!author.trim().isEmpty()) {
+            author = author.trim();
+            break;
+          }
+        }
+      }
+
+      String commitMessage = JOptionPane.showInputDialog("Enter commit message");
+      if (commitMessage == null) {
+        commitMessage = "";
+      }
+      commitMessage = commitMessage.trim();
+
+      boolean delete = false;
+      while (true) {
+        String deleteString = JOptionPane.showInputDialog("Do you want to delete the merging branch? (Y/N):");
+        if (deleteString != null) {
+          if (deleteString.equalsIgnoreCase("Y")) {
+            delete = true;
+            break;
+          } else if (deleteString.equalsIgnoreCase("N")) {
+            delete = false;
+            break;
+          }
+        }
+      }
+
+      boolean success = ipvc.mergeBranch(f, sourceBranch, destinationBranch, commitMessage, author, delete);
+      if (success) {
+        JOptionPane.showMessageDialog(this, "merge success");
+      } else {
+        JOptionPane.showMessageDialog(this, "merge failure");
+      }
+
+    } else {
+      JOptionPane.showMessageDialog(this, "Need to provide a directory to merge branch", "error - did not add directory", JOptionPane.ERROR_MESSAGE);
+    }
+  }//GEN-LAST:event_btnMergeBranchActionPerformed
+
+  private void btnGetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGetActionPerformed
+    File destinationToAdd = Controllers.fileChooser();
+    if (destinationToAdd != null) {
+      String hash = null;
+      while (true) {
+        hash = JOptionPane.showInputDialog("Enter IPFS hash:");
+        if (hash != null) {
+          if (!hash.trim().isEmpty()) {
+            hash = hash.trim();
+            break;
+          }
+        }
+      }
+
+      String projectName = JOptionPane.showInputDialog("Enter name of new folder (no name will give hash as name)");
+      if (projectName != null) {
+        if (projectName.trim().isEmpty()) {
+          projectName = null;
+        }
+      }
+      if (ipvc.getFromIPFS(destinationToAdd, hash, projectName)) {
+        System.out.println("Success getting file");
+      } else {
+        JOptionPane.showMessageDialog(this, "Not able to get file (is hash correct?)", "error - could not get hash", JOptionPane.ERROR_MESSAGE);
+      }
+    } else {
+      JOptionPane.showMessageDialog(this, "Need to provide a directory to add", "error - did not add directory", JOptionPane.ERROR_MESSAGE);
+    }
+  }//GEN-LAST:event_btnGetActionPerformed
+
+  private void btnDeleteBranchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteBranchActionPerformed
+    if (validateCurrentProject()) {
+      File f = new File(currentProjectPath);
+      List<String> branchNames = ipvc.getBranchNames(f);
+      String branch = null;
+      while (true) {
+        branch = JOptionPane.showInputDialog("Enter branch to delete: (" + String.join(",", branchNames) + ")");
+        if (branch != null) {
+          if (branchNames.contains(branch)) {
+            break;
+          }
+        }
+      }
+
+      if (ipvc.deleteBranch(f, branch)) {
+        JOptionPane.showMessageDialog(this, "Delete successful");
+      } else {
+        JOptionPane.showMessageDialog(this, "Delete failed");
+      }
+    } else {
+      JOptionPane.showMessageDialog(this, "Need to provide a directory to delete branch", "error - did not add directory", JOptionPane.ERROR_MESSAGE);
+    }
+  }//GEN-LAST:event_btnDeleteBranchActionPerformed
+
+  private void btnPublishIPFSActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPublishIPFSActionPerformed
+    if (validateCurrentProject()) {
+      File f = new File(currentProjectPath);
+      String hash = ipvc.addIPVCToIPFS(f, true);
+      ipvc.openIPFSLink("http://localhost:8080/ipfs/"+hash);
+    }
+    else{
+      JOptionPane.showMessageDialog(this, "Need to provide a directory to publish", "error - did not add directory", JOptionPane.ERROR_MESSAGE);
+    }
+  }//GEN-LAST:event_btnPublishIPFSActionPerformed
+
+  private void btnPublishIPNSActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPublishIPNSActionPerformed
+    if (validateCurrentProject()) {
+      File f = new File(currentProjectPath);
+      String ipfsHash = ipvc.addIPVCToIPFS(f, false);
+      String ipnsHash = ipvc.addIPVCToIPNS(ipfsHash);
+      ipvc.openIPFSLink("http://localhost:8080/ipns/"+ipnsHash);
+    }
+    else{
+      JOptionPane.showMessageDialog(this, "Need to provide a directory to publish", "error - did not add directory", JOptionPane.ERROR_MESSAGE);
+    }
+  }//GEN-LAST:event_btnPublishIPNSActionPerformed
+
+  private void btnPublishGitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPublishGitActionPerformed
+    File f = Controllers.fileChooser();
+    try {
+      String hash = ipvc.addGitIPFS(f);
+    } catch (IOException ex) {
+      java.util.logging.Logger.getLogger(MainUI.class.getName()).log(Level.SEVERE, null, ex);
+    } catch (InterruptedException ex) {
+      java.util.logging.Logger.getLogger(MainUI.class.getName()).log(Level.SEVERE, null, ex);
+    }
+    
+  }//GEN-LAST:event_btnPublishGitActionPerformed
 
   /**
    * @param args the command line arguments
    */
   public static void main(String args[]) {
+    //create config file (may need)
+    try {
+      OSUtilities.OS_TYPE os = OSUtilities.getOSType();
+      if (os == OSUtilities.OS_TYPE.WINDOWS) {
+        createConfigFile();
+      }
+
+      Logger.info("Starting Application");
+      Logger.info("OS: " + System.getProperty("os") + " = " + os);
+      Logger.info("Current Directory: " + new File(".").getCanonicalPath());
+      Logger.info("Class Path: " + System.getProperty("java.class.path")); //path for java built jar's and dependency jar's
+      Logger.info("Environment PATH: " + System.getenv("PATH")); //all environment variables in path
+
+    } catch (IOException ex) {
+      System.err.println("Issue creating config file");
+    }
+
+    //create cache for project
+    try {
+      File projectCacheFile = new File(new File(FileUtilities.getSettingsDirectory()), SETTINGS_CURRENT_PROJECT);
+      currentProjectPath = FileUtilities.readFile(projectCacheFile);
+      System.out.println(currentProjectPath);
+    } catch (IOException ex) {
+      System.err.println("IPVC_REPL - main(): could not read project cache file");
+    }
+
     /* Set the Nimbus look and feel */
     //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
     /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
@@ -121,14 +533,76 @@ public class MainUI extends javax.swing.JFrame {
     /* Create and display the form */
     java.awt.EventQueue.invokeLater(new Runnable() {
       public void run() {
-        new MainUI().setVisible(true);
+        MainUI frame = new MainUI();
+        frame.setVisible(true);
+        frame.setResizable(false);
+        if (validateCurrentProject()) {
+          frame.setProjectLabel();
+        }
       }
     });
+
   }
 
+  private static void createConfigFile() throws IOException {
+    File fDir = new File(OSUtilities.getSettingsDirectory());
+    if (!fDir.exists()) {
+      if (!fDir.mkdirs()) {
+        Logger.error("Could not create settings directory: " + fDir.getCanonicalPath());
+        throw new IOException("Could not create settings directory: " + fDir.getCanonicalPath());
+      }
+    }
+
+    File config = new File(fDir, "IPVC.conf");
+    if (!config.exists()) {
+      Logger.info(
+              "IPVC config file " + config.getCanonicalPath()
+              + " does not exist. Creating config file with default settings."
+      );
+
+      try (PrintStream out = new PrintStream(new FileOutputStream(config))) {
+        out.println("##############################################################################");
+        out.println("#             Inter Planetary Version Control Configuration File             #");
+        out.println("##############################################################################");
+        out.println("# This config file contains important information used by this application   #");
+        out.println("# Creation Date: " + new Date().toString());
+        out.println("##############################################################################");
+      }
+    }
+  }
+
+  private static boolean validateCurrentProject() {
+    if (currentProjectPath == null) {
+      return false;
+    }
+    if (currentProjectPath.trim().isEmpty()) {
+      return false;
+    }
+    if (!new File(currentProjectPath).exists()) {
+      return false;
+    }
+    return true;
+  }
+
+  public void setProjectLabel() {
+    this.labelProjectPath.setText("Project Name: " + new File(currentProjectPath).getName());
+    this.labelProjectPath.setHorizontalAlignment(JLabel.CENTER);
+    this.labelProjectPath.setVerticalAlignment(JLabel.CENTER);
+  }
+
+
   // Variables declaration - do not modify//GEN-BEGIN:variables
-  private javax.swing.JButton jButton1;
-  private javax.swing.JPanel jPanel1;
-  private javax.swing.JSeparator jSeparator1;
+  private javax.swing.JButton BtnChooseProject;
+  private javax.swing.JButton btnAdd;
+  private javax.swing.JButton btnCreateBranch;
+  private javax.swing.JButton btnDeleteBranch;
+  private javax.swing.JButton btnGet;
+  private javax.swing.JButton btnMergeBranch;
+  private javax.swing.JButton btnPublishGit;
+  private javax.swing.JButton btnPublishIPFS;
+  private javax.swing.JButton btnPublishIPNS;
+  private javax.swing.JLabel jLabel1;
+  private javax.swing.JPanel jPanel2;
+  private javax.swing.JLabel labelProjectPath;
   // End of variables declaration//GEN-END:variables
 }

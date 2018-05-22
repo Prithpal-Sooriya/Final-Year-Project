@@ -12,6 +12,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import com.prithpal.interplanetaryversioncontrol.Logger;
 import com.prithpal.interplanetaryversioncontrol.beans.VersionBean;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -34,6 +37,20 @@ public class IPVC {
     this.ipfs = ipfs;
   }
 
+  public void openIPFSLink(String url) {
+    try {
+      ipfs.followIPFSLink(new URL(url));
+    } catch (MalformedURLException ex) {
+      java.util.logging.Logger.getLogger(IPVC.class.getName()).log(Level.SEVERE, null, ex);
+    } catch (IOException ex) {
+      java.util.logging.Logger.getLogger(IPVC.class.getName()).log(Level.SEVERE, null, ex);
+    } catch (InterruptedException ex) {
+      java.util.logging.Logger.getLogger(IPVC.class.getName()).log(Level.SEVERE, null, ex);
+    } catch (URISyntaxException ex) {
+      java.util.logging.Logger.getLogger(IPVC.class.getName()).log(Level.SEVERE, null, ex);
+    }
+  }
+  
   public File searchForIPVCDirectory(File projectDirectory) {
     if (projectDirectory == null) {
       return null;
@@ -203,7 +220,6 @@ public class IPVC {
       if (result == null) {
         System.out.println("args_rm_temp");
       }
-
       return ipfs.getHashFromIPFSAdd(hash);
 
     } else {
