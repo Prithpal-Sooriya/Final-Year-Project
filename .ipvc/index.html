@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Version Selector</title>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <!-- <script type="text/javascript" src=".commits.json"></script> -->
+    <script src="displayCommits.js"></script>
+  </head>
+  <body style="text-align: center">
+
+    <div id="div_branches">
+      <h3>Branches</h3>
+      <select id="select_branches" onChange="changeBranch(this)">
+        <option hidden selected disabled>Select Branches</option>
+      </select>
+    </div>
+    <hr>
+    <h3 id="head_label" style="display: none">HEAD (MOST RECENT)</h3>
+    <div id="head_commit_container">
+    </div>
+    <h3 id="body_label" style="display: none">ALL VERSIONS</h3>
+    <div id="commits_container">
+    </div>
+  </body>
+</html>

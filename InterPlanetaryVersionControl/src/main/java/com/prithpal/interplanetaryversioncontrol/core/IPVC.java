@@ -88,7 +88,7 @@ public class IPVC {
     }
 
     //return is in form [hash](url)
-    String result = ipfs.addRecursiveFilesToIPFS(f, false);
+    String result = ipfs.addRecursiveFilesToIPFS(f, false, true);
     String hash = ipfs.getHashFromIPFSAdd(result);
     File commitsJSON = new File(ipvcLocation.getAbsolutePath() + COMMITS_JSON);
     try {
@@ -189,7 +189,7 @@ public class IPVC {
         System.out.println("args_rm_pack");
       }
 
-      String hash = ipfs.addRecursiveFilesToIPFS(projectGitTempStore, false);
+      String hash = ipfs.addRecursiveFilesToIPFS(projectGitTempStore, false, true);
 
       //rm temp
       final String args_rm_temp[] = {
@@ -219,11 +219,13 @@ public class IPVC {
   }
 
   //this is just in case that IPNS is too slow!!!
-  public String addIPVCToIPFS(File ipvcProjectDirectory) {
-    if (ipvcProjectDirectory == null) {
+  public String addIPVCToIPFS(File projectDirectory, boolean jframe) {
+    File ipvcDirectory = searchForIPVCDirectory(projectDirectory);
+    if (ipvcDirectory == null) {
+      System.err.println("project folder does not contains ipvc folder");
       return null;
     }
-    String result = ipfs.addRecursiveFilesToIPFS(ipvcProjectDirectory, true);
+    String result = ipfs.addRecursiveFilesToIPFS(ipvcDirectory, true, jframe);
     return ipfs.getHashFromIPFSAdd(result);
   }
 
@@ -326,6 +328,26 @@ public class IPVC {
       }
     }
     return false;
+  }
+
+  public List<String> getBranchNames(File projectDirectory) {
+    File ipvcDirectory = searchForIPVCDirectory(projectDirectory);
+    if (ipvcDirectory == null) {
+      System.err.println("IPVC - getLatestVersion(): ipvc directory not found in project");
+      return null;
+    }
+    if (ipvcDirectory.exists() && ipvcDirectory.isDirectory()) {
+      File commitsJSON = new File(ipvcDirectory + COMMITS_JSON);
+      try {
+        String json = FileUtilities.readFile(commitsJSON);
+        List<String> branchNames = VersionJSONCreator.getNamesOfBranches(json);
+        if (branchNames != null) {
+          return branchNames;
+        }
+      } catch (IOException ex) {
+      }
+    }
+    return null;
   }
 
   public VersionBean getLatestVersion(File projectDirectory, String branch) {

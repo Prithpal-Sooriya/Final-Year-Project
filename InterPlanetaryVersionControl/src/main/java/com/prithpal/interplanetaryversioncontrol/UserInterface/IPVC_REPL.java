@@ -6,11 +6,15 @@
 package com.prithpal.interplanetaryversioncontrol.UserInterface;
 
 import com.prithpal.interplanetaryversioncontrol.beans.VersionBean;
+import com.prithpal.interplanetaryversioncontrol.core.FileUtilities;
 import com.prithpal.interplanetaryversioncontrol.core.IPFSWrapper;
 import com.prithpal.interplanetaryversioncontrol.core.IPVC;
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 
 /**
@@ -19,19 +23,31 @@ import javax.swing.JFileChooser;
  */
 public class IPVC_REPL {
 
+  private static final String SETTINGS_CURRENT_PROJECT = "currentProject.flag";
+  private static String currentProjectPath = null;
+  //commands
   private static final String commandHelp = "--help"; //done
+  private static final String commandChooseProject = "choose-project"; //done
   private static final String commandAdd = "add"; //done
   private static final String commandCreateBranch = "create-branch"; //done
   private static final String commandMergeBranch = "merge-branch"; //done
   private static final String commandDeleteBranch = "delete-branch"; //done
   private static final String commandViewHead = "view-branch-head"; //done
   private static final String commandViewVersions = "view-branch-versions"; //done
-  private static final String commandPublishIPFS = "publish-ipfs";
-  private static final String commandPublishIPNS = "publish-ipns";
-  private static final String commandGitPublish = "git-publish";
+  private static final String commandPublishIPFS = "publish-ipfs"; //done
+  private static final String commandPublishIPNS = "publish-ipns"; //done
+  private static final String commandGitPublish = "git-publish"; //done
 
   public static void main(String[] args) {
     Scanner scan = new Scanner(System.in);
+
+    //on start up load previous project tracked
+    try {
+      File projectCacheFile = new File(new File(FileUtilities.getSettingsDirectory()), SETTINGS_CURRENT_PROJECT);
+      currentProjectPath = FileUtilities.readFile(projectCacheFile);
+    } catch (IOException ex) {
+      System.err.println("IPVC_REPL - main(): could not read project cache file");
+    }
 
     System.out.println("##################################");
     System.out.println("# InterPlanetary Version Control #");
@@ -40,6 +56,14 @@ public class IPVC_REPL {
 
     boolean run = true;
     while (run) {
+      if (!validateCurrentProject()) {
+        currentProjectPath = null;
+      }
+      if (currentProjectPath != null) {
+        System.out.println("Current Project working on: " + currentProjectPath);
+      } else {
+        System.out.println("Need to select on a folder to work on with the 'choose-project' command");
+      }
       String command = scan.nextLine();
       controller(command, scan);
     }
@@ -49,8 +73,13 @@ public class IPVC_REPL {
   public static void controller(String command, Scanner scan) {
     IPVC ipvc = new IPVC(new IPFSWrapper());
     File f = null;
+    if(validateCurrentProject()) {
+      f = new File(currentProjectPath);
+    }
     switch (command) {
       case commandHelp:
+        System.out.println("IPVC commands");
+        System.out.println("choose-project: choose a project to work on, can be changed");
         System.out.println("add: select a folder to add to ipfs. Will create a versioned file to hold versions");
 
         System.out.println("create-branch: allows creation of new branches");
@@ -64,42 +93,56 @@ public class IPVC_REPL {
 
         System.out.println("git-publish: select an existing git repository to add to ipfs");
         break;
+      case commandChooseProject:
+        commandChooseProjectController();
+        break;
+
       case commandAdd:
-        f = fileChooser();
-        if (f != null) {
+        if (f.exists()) {
           commandAddController(ipvc, f, scan);
         }
         break;
       case commandCreateBranch:
-        f = fileChooser();
         if (f != null) {
           commandCreateBranchController(ipvc, f, scan);
         }
         break;
       case commandDeleteBranch:
-        f = fileChooser();
         if (f != null) {
           commandDeleteBranchController(ipvc, f, scan);
         }
         break;
       case commandMergeBranch:
-        f = fileChooser();
         if (f != null) {
           commandMergeBranchController(ipvc, f, scan);
         }
         break;
       case commandViewHead:
-        f = fileChooser();
         if (f != null) {
           commandViewHeadController(ipvc, f, scan);
         }
         break;
       case commandViewVersions:
-        f = fileChooser();
         if (f != null) {
           commandViewVersionsController(ipvc, f, scan);
         }
         break;
+      case commandPublishIPFS:
+        if (f != null) {
+          commandPublishIPFSController(ipvc, f, scan);
+        }
+        break;
+      case commandPublishIPNS:
+        if (f != null) {
+          commandPublishIPNSController(ipvc, f, scan);
+        }
+        break;
+      case commandGitPublish:
+        if (f != null) {
+          commandGitPublishController(ipvc, f, scan);
+        }
+      default:
+        System.out.println("The command given was not recognised. Please reference back to '--help' command");
     }
   }
 
@@ -117,6 +160,32 @@ public class IPVC_REPL {
     return null;
   }
 
+  private static void commandChooseProjectController() {
+    File f = fileChooser();
+
+    try {
+      File projectCacheFile = new File(new File(FileUtilities.getSettingsDirectory()), SETTINGS_CURRENT_PROJECT);
+      FileUtilities.writeFile(projectCacheFile, f.getCanonicalPath());
+      currentProjectPath = f.getCanonicalPath();
+    } catch (IOException ex) {
+      System.err.println("IPVC_REPL - main(): could not read project cache file");
+    }
+
+  }
+
+  private static boolean validateCurrentProject() {
+    if (currentProjectPath == null) {
+      return false;
+    }
+    if (currentProjectPath.trim().isEmpty()) {
+      return false;
+    }
+    if (!new File(currentProjectPath).exists()) {
+      return false;
+    }
+    return true;
+  }
+
   private static void commandAddController(IPVC ipvc, File f, Scanner scan) {
     System.out.println("Enter author:");
     String author = scan.nextLine();
@@ -127,7 +196,8 @@ public class IPVC_REPL {
     String branch = "master";
     if (ipvcFolder != null) {
       if (ipvcFolder.exists() && ipvcFolder.isDirectory()) {
-        System.out.println("Select Branch");
+        List<String> branchNames = ipvc.getBranchNames(f);
+        System.out.println("Select Branch (" + String.join(",", branchNames) + ")");
         branch = scan.nextLine();
       }
     }
@@ -139,7 +209,10 @@ public class IPVC_REPL {
     String author = scan.nextLine();
     System.out.println("Enter Commit message");
     String commit = scan.nextLine();
-    System.out.println("Enter branch to fork");
+    
+    List<String> branchNames = ipvc.getBranchNames(f);
+    
+    System.out.print("Enter branch to fork (" + String.join(",", branchNames) + ")");
     String currentBranch = scan.nextLine();
     System.out.println("Enter new branch name");
     String newBranch = scan.nextLine();
@@ -151,7 +224,8 @@ public class IPVC_REPL {
   }
 
   private static void commandDeleteBranchController(IPVC ipvc, File f, Scanner scan) {
-    System.out.println("Enter branch to delete:");
+    List<String> branchNames = ipvc.getBranchNames(f);
+    System.out.println("Enter branch to delete: (" + String.join(",", branchNames) + ")");
     String branch = scan.nextLine();
 
     if (ipvc.deleteBranch(f, branch)) {
@@ -160,9 +234,10 @@ public class IPVC_REPL {
   }
 
   private static void commandMergeBranchController(IPVC ipvc, File f, Scanner scan) {
-    System.out.println("Enter branch to merge:");
+    List<String> branchNames = ipvc.getBranchNames(f);
+    System.out.println("Enter branch to merge: (" + String.join(",", branchNames) + ")");
     String sourceBranch = scan.nextLine();
-    System.out.println("Enter branch to merge to:");
+    System.out.println("Enter branch to merge to: (" + String.join(",", branchNames) + ")");
     String destinationBranch = scan.nextLine();
     System.out.println("Enter commit message:");
     String commitMessage = scan.nextLine();
@@ -194,12 +269,13 @@ public class IPVC_REPL {
   }
 
   private static void commandViewHeadController(IPVC ipvc, File f, Scanner scan) {
-    System.out.println("Select a branch to view:");
+    List<String> branchNames = ipvc.getBranchNames(f);
+    System.out.println("Select a branch to view:(" + String.join(",", branchNames) + ")");
     String branch = scan.nextLine();
 
     VersionBean version = ipvc.getLatestVersion(f, branch.trim());
     String content
-            = version.getDate() + ":\n"
+            = version.getDate() + "\n"
             + version.getCommitMessage() + " - " + version.getAuthor() + "\n"
             + "ipfs hash: " + version.getHash();
 
@@ -208,16 +284,39 @@ public class IPVC_REPL {
   }
 
   private static void commandViewVersionsController(IPVC ipvc, File f, Scanner scan) {
-    System.out.println("Select a branch to view:");
+    List<String> branchNames = ipvc.getBranchNames(f);
+    System.out.println("Select a branch to view:(" + String.join(",", branchNames) + ")");
     String branch = scan.nextLine();
 
     System.out.println(branch.trim() + " version history");
     List<VersionBean> versions = ipvc.getHistory(f, branch.trim());
     for (VersionBean version : versions) {
       String content
-            = version.getDate() + ":\n"
-            + version.getCommitMessage() + " - " + version.getAuthor() + "\n"
-            + "ipfs hash: " + version.getHash();
+              = version.getDate() + "\n"
+              + version.getCommitMessage() + " - " + version.getAuthor() + "\n"
+              + "ipfs hash: " + version.getHash();
     }
   }
+
+  private static void commandPublishIPFSController(IPVC ipvc, File f, Scanner scan) {
+    String hash = ipvc.addIPVCToIPFS(f, true);
+    System.out.println("IPVC hash on IPFS network: " + hash);
+  }
+
+  private static void commandPublishIPNSController(IPVC ipvc, File f, Scanner scan) {
+    String ipfsHash = ipvc.addIPVCToIPFS(f, false);
+    String ipvcHash = ipvc.addIPVCToIPNS(ipfsHash);
+  }
+
+  private static void commandGitPublishController(IPVC ipvc, File f, Scanner scan) {
+    try {
+      String hash = ipvc.addGitIPFS(f);
+      System.out.println("git project is now clonable through this IPFS hash: " + hash);
+    } catch (IOException ex) {
+      Logger.getLogger(IPVC_REPL.class.getName()).log(Level.SEVERE, null, ex);
+    } catch (InterruptedException ex) {
+      Logger.getLogger(IPVC_REPL.class.getName()).log(Level.SEVERE, null, ex);
+    }
+  }
+
 }

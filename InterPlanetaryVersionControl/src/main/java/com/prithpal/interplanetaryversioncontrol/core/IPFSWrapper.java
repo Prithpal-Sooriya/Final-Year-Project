@@ -67,12 +67,12 @@ public class IPFSWrapper {
 
   private String getHashFromIPNSAdd(String result) {
     Matcher m = Pattern.compile("(Published to ([a-zA-Z0-9]{15,100}))").matcher(result);
-    while(m.find()) {
+    while (m.find()) {
       return m.group(2);
     }
     return null; //no match found
   }
-  
+
   public String addToIPNS(String hash) {
     if (hash == null) {
       return null;
@@ -117,14 +117,16 @@ public class IPFSWrapper {
 
   //return in format [hash](link)
   //supports adding recursive and hidden (.) files (e.g. ".ipvc")
-  public String addRecursiveFilesToIPFS(File file, boolean addHidden) {
+  public String addRecursiveFilesToIPFS(File file, boolean addHidden, boolean jframe) {
     if (!file.exists()) {
       return null;
     }
-    
+
     Cursor oldCursor = this.parentFrame.getCursor();
     try {
-      this.parentFrame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+      if (jframe) {
+        this.parentFrame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+      }
       Logger.info("Sharing file {0}", file.getCanonicalPath());
 
       if (!this.ensureIPFSIsRunning()) {
@@ -148,18 +150,20 @@ public class IPFSWrapper {
       );
       String response = exec.execute().trim();
       Logger.info("File added, IPFS hash: " + response);
-      this.parentFrame.setCursor(oldCursor);
-      Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-      clipboard.setContents(new StringSelection("http://localhost:8080/ipfs/" + response), null);
-      JOptionPane.showMessageDialog(
-              this.parentFrame,
-              "The folder " + file.getName() + " has been added to the IPFS network.\n"
-              + "It may be reached by other users (who also have IPFS server running)\n"
-              + "via the link: http://localhost:8080/ipfs/" + response + "\n\n"
-              + "you can copy the link from this text box and has already been copied to your clipboard",
-              "File added success!",
-              JOptionPane.INFORMATION_MESSAGE
-      );
+      if (jframe) {
+        this.parentFrame.setCursor(oldCursor);
+        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        clipboard.setContents(new StringSelection("http://localhost:8080/ipfs/" + response), null);
+        JOptionPane.showMessageDialog(
+                this.parentFrame,
+                "The folder " + file.getName() + " has been added to the IPFS network.\n"
+                + "It may be reached by other users (who also have IPFS server running)\n"
+                + "via the link: http://localhost:8080/ipfs/" + response + "\n\n"
+                + "you can copy the link from this text box and has already been copied to your clipboard",
+                "File added success!",
+                JOptionPane.INFORMATION_MESSAGE
+        );
+      }
       return "[" + response + "]("
               + "http://localhost:8080/ipfs/" + response + ")";
     } catch (Exception ex) {

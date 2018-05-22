@@ -46,6 +46,16 @@ public class FileUtilities {
     
   }
   
+  public static String createFileInSettings(String fileName) throws IOException {
+    File settingsDir = new File(getSettingsDirectory());
+    File settingsFile = new File(settingsDir, fileName.trim());
+    
+    if(!settingsFile.exists()) {
+      settingsFile.createNewFile();
+    }
+    return settingsFile.getCanonicalPath();
+  }
+  
   public static String getSettingsDirectory() throws IOException {
      File fDir = new File(OSUtilities.getSettingsDirectory());
     if (!fDir.exists()) {
