@@ -29,6 +29,10 @@ public class CommandExecutor {
   public Process startChildProcess() throws IOException {
     return Runtime.getRuntime().exec(args);
   }
+  
+  public Process startChildProcess(String directory) throws IOException {
+    return Runtime.getRuntime().exec(args, null, new File(directory));
+  }
 
   //execute command
   public String execute() throws IOException, InterruptedException {

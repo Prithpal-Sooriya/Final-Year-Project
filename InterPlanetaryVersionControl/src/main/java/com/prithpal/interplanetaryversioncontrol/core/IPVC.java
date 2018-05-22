@@ -214,6 +214,10 @@ public class IPVC {
     return null;
   }
 
+  public boolean getFromIPFS(File destinationPath, String hash, String newDirName) {
+    return ipfs.get(destinationPath, hash, newDirName);
+  }
+  
   public String addIPVCToIPNS(String ipfsHash) {
     return ipfs.addToIPNS(ipfsHash);
   }

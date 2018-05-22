@@ -505,7 +505,7 @@ public class VersionJSONCreator {
    * @param branchToDelete branchName to delete
    * @return String result json string. It will return null if there is an error
    */
-   public static String deleteBranch(String json, String branchToDelete) {
+  public static String deleteBranch(String json, String branchToDelete) {
     //sanitation
     if (branchToDelete == null) {
       System.out.println("VersionJSONCreator - deleteBranch(): branch to delete was null");

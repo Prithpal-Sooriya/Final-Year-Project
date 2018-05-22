@@ -29,6 +29,7 @@ public class IPVC_REPL {
   private static final String commandHelp = "--help"; //done
   private static final String commandChooseProject = "choose-project"; //done
   private static final String commandAdd = "add"; //done
+  private static final String commandGet = "get";
   private static final String commandCreateBranch = "create-branch"; //done
   private static final String commandMergeBranch = "merge-branch"; //done
   private static final String commandDeleteBranch = "delete-branch"; //done
@@ -81,7 +82,8 @@ public class IPVC_REPL {
         System.out.println("IPVC commands");
         System.out.println("choose-project: choose a project to work on, can be changed");
         System.out.println("add: select a folder to add to ipfs. Will create a versioned file to hold versions");
-
+        System.out.println("get: get a folder from ipfs network. Requires hash");
+        
         System.out.println("create-branch: allows creation of new branches");
         System.out.println("merge-branch: allows merging of branches, and if the merged branch should end (master branch will not be destroyed)");
         System.out.println("delete-branch: allows deletion of branches (master branch cannot be destroyed)");
@@ -96,11 +98,13 @@ public class IPVC_REPL {
       case commandChooseProject:
         commandChooseProjectController();
         break;
-
       case commandAdd:
         if (f.exists()) {
           commandAddController(ipvc, f, scan);
         }
+        break;
+      case commandGet:
+        commandGetController(ipvc, scan);
         break;
       case commandCreateBranch:
         if (f != null) {
@@ -162,7 +166,6 @@ public class IPVC_REPL {
 
   private static void commandChooseProjectController() {
     File f = fileChooser();
-
     try {
       File projectCacheFile = new File(new File(FileUtilities.getSettingsDirectory()), SETTINGS_CURRENT_PROJECT);
       FileUtilities.writeFile(projectCacheFile, f.getCanonicalPath());
@@ -170,7 +173,6 @@ public class IPVC_REPL {
     } catch (IOException ex) {
       System.err.println("IPVC_REPL - main(): could not read project cache file");
     }
-
   }
 
   private static boolean validateCurrentProject() {
@@ -204,6 +206,25 @@ public class IPVC_REPL {
     String hash = ipvc.addIPFS(f, commit, author, branch);
   }
 
+  private static void commandGetController(IPVC ipvc, Scanner scan) {
+    System.out.println("Select location to add content");
+    File f = fileChooser();
+    System.out.println("Provide hash:");
+    String hash = scan.nextLine();
+    System.out.println("Provide a name (if non given, then using hash as name)");
+    String name = scan.nextLine();
+    
+    if(name.trim().isEmpty()) {
+      name = null;
+    }
+    if(ipvc.getFromIPFS(f, hash, name)) {
+      System.out.println("Success getting file");
+    }
+    else {
+      System.out.println("Not able to get file (is hash correct?)");
+    }
+  }
+  
   private static void commandCreateBranchController(IPVC ipvc, File f, Scanner scan) {
     System.out.println("Enter author:");
     String author = scan.nextLine();

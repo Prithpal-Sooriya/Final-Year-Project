@@ -15,8 +15,11 @@ import java.awt.Desktop;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -63,6 +66,50 @@ public class IPFSWrapper {
     } else {
       Logger.info("Not opening IPFS link: {0} due to IPFS not running!", url.toString());
     }
+  }
+
+  public boolean get(File destinationPath, String hash, String newDirName) {
+    if (destinationPath == null) {
+      System.err.println("IPFS - get(): destinationPath is null");
+      return false;
+    }
+    if (!destinationPath.exists()) {
+      System.err.println("IPFS - get: destinationPath does not exist");
+      return false;
+    }
+    if (!destinationPath.isDirectory()) {
+      System.err.println("IPFS - get: destinationPath is not directory");
+      return false;
+    }
+    try {
+      String ipfs = this.getIPFSExecutable().getCanonicalPath();
+      String args[] = {
+        ipfs,
+        "get",
+        hash
+      };
+      CommandExecutor exec = new CommandExecutor(args);
+      Process p = exec.startChildProcess(destinationPath.getCanonicalPath());
+      Logger.warning("IPFS GET command: Will wait for before destroying"
+              + "(potentially unreachable hash...)");
+      Thread.sleep(5000);
+      if (p.isAlive()) {
+        Logger.warning("IPFS GET command: hash was not reached, so destroying process");
+        p.destroy();
+        return false;
+      }
+      
+      if (newDirName != null) {
+        String path = destinationPath.getCanonicalPath() + "/" + hash;
+        File file = new File(path);
+        File newFile = new File(destinationPath.getAbsoluteFile() + "/" + newDirName);
+        file.renameTo(newFile);
+      }
+      return true;
+    } catch (IOException ex) {
+    } catch (InterruptedException ex) {
+    }
+    return false;
   }
 
   private String getHashFromIPNSAdd(String result) {
